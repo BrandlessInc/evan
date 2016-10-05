@@ -2,6 +2,7 @@ package http_handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -39,10 +40,21 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(deploymentEvent *github
 	return nil
 }
 
+func respondWithError(res http.ResponseWriter, err error) {
+	http.Error(res, fmt.Sprintf("%v", err), http.StatusInternalServerError)
+}
+
+func respondWithOk(res http.ResponseWriter, message string) {
+	res.Header().Set("Content-Type", "text/plain")
+	res.WriteHeader(200)
+	fmt.Fprintln(res, message)
+}
+
 func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		panic(err)
+		respondWithError(res, err)
+		return
 	}
 
 	event := req.Header["X-GitHub-Event"][0]
@@ -51,7 +63,12 @@ func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.
 		var deploymentEvent github.DeploymentEvent
 		err := json.Unmarshal(body, &deploymentEvent)
 		if err != nil {
-			panic(err)
+			respondWithError(res, err)
+			return
 		}
+		respondWithOk(res, "OK")
+	} else {
+		message := fmt.Sprintf("Cannot handle event: %v", event)
+		http.Error(res, message, http.StatusNotImplemented)
 	}
 }
