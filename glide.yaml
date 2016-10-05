@@ -1,0 +1,4 @@
+package: github.com/Everlane/evan
+import:
+- package: github.com/google/go-github
+  version: 3e246d29992beb5a5d2fc253adebea86997c45b0
