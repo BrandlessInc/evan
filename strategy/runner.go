@@ -22,3 +22,31 @@ type Runner struct {
 	// Result of the combined status on GitHub for the ref.
 	CombinedStatus *github.CombinedStatus
 }
+
+// Run all the preconditions concurrently and gather their results.
+func (runner *Runner) RunPreconditions() []PreconditionResult {
+	preconditions := runner.Strategy.Preconditions
+	resultsChan := make(PreconditionResults)
+
+	for _, precondition := range preconditions {
+		go precondition.Status(runner, resultsChan)
+	}
+
+	results := make([]PreconditionResult, len(preconditions))
+	for i := range preconditions {
+		results[i] = <-resultsChan
+	}
+
+	return results
+}
+
+func (runner *Runner) Run() error {
+    preconditionResults := runner.RunPreconditions()
+    for _, result := range preconditionResults {
+        if result.Error != nil {
+            return result.Error
+        }
+    }
+
+    return nil
+}

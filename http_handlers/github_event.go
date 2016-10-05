@@ -41,7 +41,7 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(deploymentEvent *github
 		Ref: *deploymentEvent.Deployment.Ref,
 	}
 
-	return nil
+	return runner.Run()
 }
 
 func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
