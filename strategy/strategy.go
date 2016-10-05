@@ -28,7 +28,7 @@ type Strategy struct {
 	Reporter      Reporter
 }
 
-func newStrategyWithDefaults(Application *application.Application) *Strategy {
+func NewStrategyWithDefaults(Application *application.Application) *Strategy {
 	return &Strategy{
 		State:       make(StateMap),
 		Reporter:    nil,
