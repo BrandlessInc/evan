@@ -1,9 +1,5 @@
 package config
 
-import (
-	"github.com/google/go-github/github"
-)
-
 type PreconditionResult struct {
 	Precondition Precondition
 	Error        error
@@ -21,9 +17,4 @@ type PreconditionResults chan PreconditionResult
 
 type Precondition interface {
 	Status(*Application, Deployment, PreconditionResults)
-}
-
-type Deployment interface {
-	GetRef() string
-	GetGithubClient() *github.Client
 }
