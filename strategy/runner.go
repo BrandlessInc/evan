@@ -2,6 +2,7 @@ package strategy
 
 import (
 	"github.com/Everlane/evan/repository"
+	"github.com/Everlane/evan/target"
 
 	"github.com/google/go-github/github"
 )
@@ -14,6 +15,7 @@ type Runner struct {
 
 	// Internal configuration
 	Strategy *Strategy
+	Target   *target.Target
 
 	// Git ref for which we're running the strategy.
 	Ref string
