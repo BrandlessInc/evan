@@ -5,43 +5,38 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/Everlane/evan/application"
-	"github.com/Everlane/evan/strategy"
+	"github.com/Everlane/evan/config"
+	"github.com/Everlane/evan/context"
 
 	"github.com/google/go-github/github"
 )
 
 type GithubEventHandler struct {
-	suite        *application.Suite
+	applications *config.Applications
 	githubClient *github.Client
 }
 
-func NewGithubEventHandler(suite *application.Suite, githubClient *github.Client) *GithubEventHandler {
+func NewGithubEventHandler(applications *config.Applications, githubClient *github.Client) *GithubEventHandler {
 	return &GithubEventHandler{
-		suite:        suite,
+		applications: applications,
 		githubClient: githubClient,
 	}
 }
 
 func (handler *GithubEventHandler) HandleDeploymentEvent(deploymentEvent *github.DeploymentEvent) error {
-	repo := deploymentEvent.Repo
-	app := handler.suite.FindApplicationForGithubRepository(repo)
+	app := handler.applications.FindApplicationForGithubRepository(deploymentEvent.Repo)
 
-	environment := *deploymentEvent.Deployment.Environment
-	target := app.TargetForEnvironment(environment)
-	strat := app.StrategyForEnvironment(environment)
+	target, strategy := app.DeployEnvironment(*deploymentEvent.Deployment.Environment)
 
-	runner := &strategy.Runner{
-		Repository:   app.Repository,
-		GithubClient: handler.githubClient,
-
-		Strategy: strat,
-		Target:   target,
-
+	_ = &context.Deployment{
+		Application: app,
+		Target: target,
+		Strategy: strategy,
 		Ref: *deploymentEvent.Deployment.Ref,
+		GithubClient: handler.githubClient,
 	}
 
-	return runner.Run()
+	return nil
 }
 
 func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
