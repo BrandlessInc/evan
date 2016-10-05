@@ -10,7 +10,7 @@ type Application struct {
 
 	// Called to determine the target and strategy to use for deploying to a
 	// given environment.
-	DeployEnvironment func(string) (Target, *Strategy)
+	DeployEnvironment func(string) *Strategy
 }
 
 type Applications struct {

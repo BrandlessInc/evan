@@ -27,11 +27,12 @@ func NewGithubEventHandler(applications *config.Applications, githubClient *gith
 func (handler *GithubEventHandler) HandleDeploymentEvent(deploymentEvent *github.DeploymentEvent) error {
 	app := handler.applications.FindApplicationForGithubRepository(deploymentEvent.Repo)
 
-	target, strategy := app.DeployEnvironment(*deploymentEvent.Deployment.Environment)
+	environment := *deploymentEvent.Deployment.Environment
+	strategy := app.DeployEnvironment(environment)
 
 	_ = &context.Deployment{
 		Application: app,
-		Target: target,
+		Environment: environment,
 		Strategy: strategy,
 		Ref: *deploymentEvent.Deployment.Ref,
 		GithubClient: handler.githubClient,
