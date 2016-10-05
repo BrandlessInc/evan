@@ -27,5 +27,8 @@ func (gh *GithubStatusesPrecondition) Status(strategy *Strategy, results Precond
         return
     }
     strategy.SetGithubDeploymentStatus(status)
+
+    // TODO: Actually verify that the combined status is okay.
+
     results <- createResult(gh, nil)
 }
