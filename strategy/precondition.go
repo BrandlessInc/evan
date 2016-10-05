@@ -8,7 +8,7 @@ type PreconditionResult struct {
 type PreconditionResults chan PreconditionResult
 
 type Precondition interface {
-	Status(*Strategy, PreconditionResults)
+	Status(*Runner, PreconditionResults)
 }
 
 func createResult(precondition Precondition, err error) PreconditionResult {
@@ -20,13 +20,13 @@ func createResult(precondition Precondition, err error) PreconditionResult {
 
 type GithubStatusesPrecondition struct {}
 
-func (gh *GithubStatusesPrecondition) Status(strategy *Strategy, results PreconditionResults) {
-    status, err := strategy.Application.GetGithubStatus(strategy.Ref())
+func (gh *GithubStatusesPrecondition) Status(runner *Runner, results PreconditionResults) {
+    status, err := runner.Application.GetGithubStatus(runner.Ref)
     if err != nil {
         results <- createResult(gh, err)
         return
     }
-    strategy.SetGithubDeploymentStatus(status)
+    runner.CombinedStatus = status
 
     // TODO: Actually verify that the combined status is okay.
 
