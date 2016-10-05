@@ -21,7 +21,7 @@ func createResult(precondition Precondition, err error) PreconditionResult {
 type GithubStatusesPrecondition struct {}
 
 func (gh *GithubStatusesPrecondition) Status(runner *Runner, results PreconditionResults) {
-    status, err := runner.Application.GetGithubStatus(runner.Ref)
+    status, err := runner.Repository.GetGithubStatus(runner.GithubClient, runner.Ref)
     if err != nil {
         results <- createResult(gh, err)
         return
