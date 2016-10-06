@@ -16,6 +16,7 @@ type Deployment struct {
 	flags        map[string]interface{}
 
 	githubClient *github.Client
+	store common.Store
 
 	// Internal state
 	currentState common.DeploymentState
@@ -47,6 +48,15 @@ func (deployment *Deployment) Ref() string {
 
 func (deployment *Deployment) GithubClient() *github.Client {
 	return deployment.githubClient
+}
+
+func (deployment *Deployment) SetGithubClient(githubClient *github.Client) {
+	deployment.githubClient = githubClient
+}
+
+func (deployment *Deployment) SetStoreAndSave(store common.Store) error {
+	deployment.store = store
+	return store.SaveDeployment(deployment)
 }
 
 func (deployment *Deployment) Flags() map[string]interface{} {
