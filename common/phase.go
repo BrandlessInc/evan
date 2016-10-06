@@ -1,11 +1,11 @@
-package config
+package common
 
 type ExecuteStatus int
 
 const (
-	DONE ExecuteStatus = iota
-	IN_PROGRESS
-	ERROR
+	PHASE_DONE ExecuteStatus = iota
+	PHASE_IN_PROGRESS
+	PHASE_ERROR
 )
 
 type Phase interface {

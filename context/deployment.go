@@ -3,6 +3,7 @@ package context
 import (
 	"fmt"
 
+	"github.com/Everlane/evan/common"
 	"github.com/Everlane/evan/config"
 
 	"github.com/google/go-github/github"
@@ -29,7 +30,7 @@ func NewDeployment(app *config.Application, environment string, strategy *config
 	}
 }
 
-func (deployment *Deployment) Application() *config.Application {
+func (deployment *Deployment) Application() common.Application {
 	return deployment.application
 }
 
@@ -71,7 +72,7 @@ func (deployment *Deployment) IsForce() bool {
 func (deployment *Deployment) RunPreconditions() error {
 	preconditions := deployment.strategy.Preconditions
 
-	resultChan := make(chan config.PreconditionResult)
+	resultChan := make(chan common.PreconditionResult)
 	for _, precondition := range preconditions {
 		go func() {
 			resultChan <- precondition.Status(deployment)
@@ -111,12 +112,12 @@ func (deployment *Deployment) RunPhases() error {
 		}
 
 		switch status {
-		case config.DONE:
+		case common.PHASE_DONE:
 			continue
-		case config.IN_PROGRESS:
+		case common.PHASE_IN_PROGRESS:
 			// This "run" of the strategy is done for now if we're executing
 			return nil
-		case config.ERROR:
+		case common.PHASE_ERROR:
 			// We've already returned the error if it's present; so if we
 			// reach here then it's `nil` and we don't know what's gone wrong
 			return fmt.Errorf("An unknown error occurred in phase: %v", phase)
@@ -129,14 +130,14 @@ func (deployment *Deployment) RunPhases() error {
 }
 
 func (deployment *Deployment) RunPhasePreloads() error {
-	preloadablePhases := make([]config.PreloadablePhase, 0)
+	preloadablePhases := make([]common.PreloadablePhase, 0)
 	for _, phase := range deployment.strategy.Phases {
 		if phase.CanPreload() {
-			preloadablePhases = append(preloadablePhases, phase.(config.PreloadablePhase))
+			preloadablePhases = append(preloadablePhases, phase.(common.PreloadablePhase))
 		}
 	}
 
-	resultChan := make(chan config.PreloadResult)
+	resultChan := make(chan common.PreloadResult)
 	for _, phase := range preloadablePhases {
 		go func() {
 			resultChan <- phase.Preload(deployment)

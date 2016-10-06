@@ -1,6 +1,10 @@
 package config
 
+import (
+	"github.com/Everlane/evan/common"
+)
+
 type Strategy struct {
-	Preconditions []Precondition
-	Phases        []Phase
+	Preconditions []common.Precondition
+	Phases        []common.Phase
 }

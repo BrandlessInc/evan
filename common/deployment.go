@@ -1,11 +1,11 @@
-package config
+package common
 
 import (
 	"github.com/google/go-github/github"
 )
 
 type Deployment interface {
-	Application() *Application
+	Application() Application
 	Ref() string
 	GithubClient() *github.Client
 	Flags() map[string]interface{}
@@ -14,4 +14,13 @@ type Deployment interface {
 	// Some object representing the request that initiated this deployment,
 	// eg. `*github.DeploymentEvent`.
 	Initiator() interface{}
+}
+
+type Application interface {
+	Repository() Repository
+}
+
+type Repository interface {
+	Owner() string
+	Name() string
 }
