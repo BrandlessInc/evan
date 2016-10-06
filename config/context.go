@@ -5,6 +5,7 @@ import (
 )
 
 type Deployment interface {
+	GetApplication() *Application
 	GetRef() string
 	GetGithubClient() *github.Client
 }

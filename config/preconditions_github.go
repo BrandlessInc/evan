@@ -6,8 +6,8 @@ import (
 
 type GithubCombinedStatusPrecondition struct{}
 
-func (gh *GithubCombinedStatusPrecondition) Status(app *Application, deployment Deployment, results PreconditionResults) {
-	repo := app.Repository
+func (gh *GithubCombinedStatusPrecondition) Status(deployment Deployment, results PreconditionResults) {
+	repo := deployment.GetApplication().Repository
 	ref := deployment.GetRef()
 	client := deployment.GetGithubClient()
 

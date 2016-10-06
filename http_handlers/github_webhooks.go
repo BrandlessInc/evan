@@ -37,7 +37,7 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, depl
 		}
 	}
 
-	return nil
+	return deployment.Run()
 }
 
 func respondWithError(res http.ResponseWriter, err error) {

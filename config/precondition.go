@@ -16,5 +16,5 @@ func createResult(precondition Precondition, err error) PreconditionResult {
 type PreconditionResults chan PreconditionResult
 
 type Precondition interface {
-	Status(*Application, Deployment, PreconditionResults)
+	Status(Deployment, PreconditionResults)
 }
