@@ -10,32 +10,47 @@ import (
 
 // Stores state relating to a deployment.
 type Deployment struct {
-	Application  *config.Application
-	Environment  string
-	Strategy     *config.Strategy
-	Ref          string
-	GithubClient *github.Client
-	Initiator    interface{}
+	application  *config.Application
+	environment  string
+	strategy     *config.Strategy
+	ref          string
+	flags        map[string]interface{}
+
+	githubClient *github.Client
+	initiator    interface{}
 }
 
-func (deployment *Deployment) GetApplication() *config.Application {
-	return deployment.Application
+func NewDeployment(app *config.Application, environment string, strategy *config.Strategy, ref string) *Deployment {
+	return &Deployment{
+		application: app,
+		environment: environment,
+		strategy: strategy,
+		ref: ref,
+	}
 }
 
-func (deployment *Deployment) GetGithubClient() *github.Client {
-	return deployment.GithubClient
+func (deployment *Deployment) Application() *config.Application {
+	return deployment.application
 }
 
-func (deployment *Deployment) GetRef() string {
-	return deployment.Ref
+func (deployment *Deployment) Ref() string {
+	return deployment.ref
 }
 
-func (deployment *Deployment) GetInitiator() interface{} {
-	return deployment.Initiator
+func (deployment *Deployment) GithubClient() *github.Client {
+	return deployment.githubClient
+}
+
+func (deployment *Deployment) Initiator() interface{} {
+	return deployment.initiator
+}
+
+func (deployment *Deployment) SetInitiator(initiator interface{}) {
+	deployment.initiator = initiator
 }
 
 func (deployment *Deployment) RunPreconditions() error {
-	preconditions := deployment.Strategy.Preconditions
+	preconditions := deployment.strategy.Preconditions
 
 	resultChan := make(chan config.PreconditionResult)
 	for _, precondition := range preconditions {
@@ -60,7 +75,7 @@ func (deployment *Deployment) RunPhases() error {
 		return err
 	}
 
-	phases := deployment.Strategy.Phases
+	phases := deployment.strategy.Phases
 	for _, phase := range phases {
 		// Skip already-executed phases
 		hasExecuted, err := phase.HasExecuted(deployment)
@@ -96,7 +111,7 @@ func (deployment *Deployment) RunPhases() error {
 
 func (deployment *Deployment) RunPhasePreloads() error {
 	preloadablePhases := make([]config.PreloadablePhase, 0)
-	for _, phase := range deployment.Strategy.Phases {
+	for _, phase := range deployment.strategy.Phases {
 		if phase.CanPreload() {
 			preloadablePhases = append(preloadablePhases, phase.(config.PreloadablePhase))
 		}

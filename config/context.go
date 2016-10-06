@@ -5,11 +5,11 @@ import (
 )
 
 type Deployment interface {
-	GetApplication() *Application
-	GetRef() string
-	GetGithubClient() *github.Client
+	Application() *Application
+	Ref() string
+	GithubClient() *github.Client
 
 	// Some object representing the request that initiated this deployment,
 	// eg. `*github.DeploymentEvent`.
-	GetInitiator() interface{}
+	Initiator() interface{}
 }

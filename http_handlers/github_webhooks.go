@@ -15,12 +15,7 @@ import (
 func createDeployment(app *config.Application, environment string, ref string) *context.Deployment {
 	strategy := app.DeployEnvironment(environment)
 
-	return &context.Deployment{
-		Application: app,
-		Environment: environment,
-		Strategy:    strategy,
-		Ref:         ref,
-	}
+	return context.NewDeployment(app, environment, strategy, ref)
 }
 
 type GithubEventHandler struct {
@@ -41,7 +36,7 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body
 	ref := *deploymentEvent.Deployment.Ref
 
 	deployment := createDeployment(app, environment, ref)
-	deployment.Initiator = deploymentEvent
+	deployment.SetInitiator(deploymentEvent)
 
 	if handler.PreDeployment != nil {
 		err := handler.PreDeployment(req, deployment)
@@ -65,7 +60,7 @@ func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request
 	ref := *deploymentStatusEvent.Deployment.Ref
 
 	deployment := createDeployment(app, environment, ref)
-	deployment.Initiator = deploymentStatusEvent
+	deployment.SetInitiator(deploymentStatusEvent)
 
 	if handler.PreDeploymentStatus != nil {
 		err := handler.PreDeploymentStatus(req, deployment)
