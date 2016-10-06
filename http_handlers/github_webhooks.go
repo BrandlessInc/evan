@@ -67,6 +67,8 @@ func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.
 			return
 		}
 		respondWithOk(res, "OK")
+	} else if event == "ping" {
+		respondWithOk(res, "PONG")
 	} else {
 		message := fmt.Sprintf("Cannot handle event: %v", event)
 		http.Error(res, message, http.StatusNotImplemented)
