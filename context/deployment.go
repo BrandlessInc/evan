@@ -1,8 +1,6 @@
 package context
 
 import (
-	"fmt"
-
 	"github.com/Everlane/evan/common"
 	"github.com/Everlane/evan/config"
 
@@ -18,7 +16,11 @@ type Deployment struct {
 	flags        map[string]interface{}
 
 	githubClient *github.Client
-	initiator    interface{}
+
+	// Internal state
+	currentState common.DeploymentState
+	currentPhase common.Phase
+	lastError error
 }
 
 func NewDeployment(app *config.Application, environment string, strategy *config.Strategy, ref string) *Deployment {
@@ -27,6 +29,7 @@ func NewDeployment(app *config.Application, environment string, strategy *config
 		environment: environment,
 		strategy: strategy,
 		ref: ref,
+		currentState: common.DEPLOYMENT_PENDING,
 	}
 }
 
@@ -40,14 +43,6 @@ func (deployment *Deployment) Ref() string {
 
 func (deployment *Deployment) GithubClient() *github.Client {
 	return deployment.githubClient
-}
-
-func (deployment *Deployment) Initiator() interface{} {
-	return deployment.initiator
-}
-
-func (deployment *Deployment) SetInitiator(initiator interface{}) {
-	deployment.initiator = initiator
 }
 
 func (deployment *Deployment) Flags() map[string]interface{} {
@@ -69,7 +64,22 @@ func (deployment *Deployment) IsForce() bool {
 	}
 }
 
-func (deployment *Deployment) RunPreconditions() error {
+func (deployment *Deployment) Status() common.DeploymentStatus {
+	var phase common.Phase
+	if deployment.currentState == common.RUNNING_PHASE {
+		phase = deployment.currentPhase
+	}
+
+	return common.DeploymentStatus{
+		State: deployment.currentState,
+		Phase: phase,
+		Error: nil,
+	}
+}
+
+func (deployment *Deployment) CheckPreconditions() error {
+	deployment.currentState = common.RUNNING_PRECONDITIONS
+
 	preconditions := deployment.strategy.Preconditions
 
 	resultChan := make(chan common.PreconditionResult)
@@ -89,44 +99,39 @@ func (deployment *Deployment) RunPreconditions() error {
 	return nil
 }
 
+// Internal implementation of running phases.
+func (deployment *Deployment) runPhases() error {
+	phases := deployment.strategy.Phases
+	for _, phase := range phases {
+		deployment.currentPhase = phase
+
+		err := phase.Execute(deployment)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Wrapper around the internal implementation with additional state management.
 func (deployment *Deployment) RunPhases() error {
 	err := deployment.RunPhasePreloads()
 	if err != nil {
 		return err
 	}
 
-	phases := deployment.strategy.Phases
-	for _, phase := range phases {
-		// Skip already-executed phases
-		hasExecuted, err := phase.HasExecuted(deployment)
-		if err != nil {
-			return err
-		}
-		if hasExecuted {
-			continue
-		}
+	deployment.currentState = common.RUNNING_PHASE
 
-		status, err := phase.Execute(deployment)
-		if err != nil {
-			return err
-		}
-
-		switch status {
-		case common.PHASE_DONE:
-			continue
-		case common.PHASE_IN_PROGRESS:
-			// This "run" of the strategy is done for now if we're executing
-			return nil
-		case common.PHASE_ERROR:
-			// We've already returned the error if it's present; so if we
-			// reach here then it's `nil` and we don't know what's gone wrong
-			return fmt.Errorf("An unknown error occurred in phase: %v", phase)
-		default:
-			return fmt.Errorf("Unknown status: %#v", status)
-		}
+	err = deployment.runPhases()
+	if err != nil {
+		deployment.lastError = err
+		deployment.currentState = common.DEPLOYMENT_ERROR
+		return err
+	} else {
+		deployment.currentState = common.DEPLOYMENT_DONE
+		return nil
 	}
-
-	return nil
 }
 
 func (deployment *Deployment) RunPhasePreloads() error {
@@ -149,20 +154,6 @@ func (deployment *Deployment) RunPhasePreloads() error {
 		if result.Error != nil {
 			return result.Error
 		}
-	}
-
-	return nil
-}
-
-func (deployment *Deployment) Run() error {
-	err := deployment.RunPreconditions()
-	if err != nil {
-		return err
-	}
-
-	err = deployment.RunPhases()
-	if err != nil {
-		return err
 	}
 
 	return nil

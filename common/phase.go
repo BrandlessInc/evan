@@ -10,11 +10,7 @@ const (
 
 type Phase interface {
 	CanPreload() bool
-
-    // Has the phase already executed (synchronous, lifecycle).
-    HasExecuted(Deployment) (bool, error)
-
-    Execute(Deployment) (ExecuteStatus, error)
+	Execute(Deployment) error
 }
 
 type PreloadResult struct {

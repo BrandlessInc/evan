@@ -4,6 +4,22 @@ import (
 	"github.com/google/go-github/github"
 )
 
+type DeploymentState int
+
+const (
+	DEPLOYMENT_PENDING DeploymentState = iota
+	RUNNING_PRECONDITIONS
+	RUNNING_PHASE
+	DEPLOYMENT_DONE
+	DEPLOYMENT_ERROR
+)
+
+type DeploymentStatus struct {
+	State DeploymentState
+	Phase Phase
+	Error error
+}
+
 type Deployment interface {
 	Application() Application
 	Ref() string
@@ -11,9 +27,7 @@ type Deployment interface {
 	Flags() map[string]interface{}
 	IsForce() bool
 
-	// Some object representing the request that initiated this deployment,
-	// eg. `*github.DeploymentEvent`.
-	Initiator() interface{}
+	Status() DeploymentStatus
 }
 
 type Application interface {

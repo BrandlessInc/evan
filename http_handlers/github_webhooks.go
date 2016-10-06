@@ -36,7 +36,6 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body
 	ref := *deploymentEvent.Deployment.Ref
 
 	deployment := createDeployment(app, environment, ref)
-	deployment.SetInitiator(deploymentEvent)
 
 	if handler.PreDeployment != nil {
 		err := handler.PreDeployment(req, deployment)
@@ -45,7 +44,7 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body
 		}
 	}
 
-	return deployment.Run()
+	return nil // deployment.Run()
 }
 
 func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request, body []byte) error {
@@ -60,7 +59,6 @@ func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request
 	ref := *deploymentStatusEvent.Deployment.Ref
 
 	deployment := createDeployment(app, environment, ref)
-	deployment.SetInitiator(deploymentStatusEvent)
 
 	if handler.PreDeploymentStatus != nil {
 		err := handler.PreDeploymentStatus(req, deployment)
@@ -69,7 +67,7 @@ func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request
 		}
 	}
 
-	return deployment.Run()
+	return nil // deployment.Run()
 }
 
 func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
