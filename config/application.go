@@ -32,4 +32,14 @@ type Repository struct {
 	Name  string
 }
 
+func (repo *Repository) Get(githubClient *github.Client) (*github.Repository, error) {
+	repository, _, err := githubClient.Repositories.Get(repo.Owner, repo.Name)
+	return repository, err
+}
+
+func (repo *Repository) CompareCommits(githubClient *github.Client, base, head string) (*github.CommitsComparison, error) {
+	commitsComparison, _, err := githubClient.Repositories.CompareCommits(repo.Owner, repo.Name, base, head)
+	return commitsComparison, err
+}
+
 type Target interface{}

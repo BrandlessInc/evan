@@ -53,6 +53,21 @@ func (deployment *Deployment) Flags() map[string]interface{} {
 	return deployment.flags
 }
 
+// Looks for the "force" boolean in the `flags`.
+func (deployment *Deployment) IsForce() bool {
+	forceUntyped, present := deployment.flags["force"]
+	if !present {
+		return false
+	}
+
+	force, ok := forceUntyped.(bool)
+	if !ok || !force {
+		return false
+	} else {
+		return true
+	}
+}
+
 func (deployment *Deployment) RunPreconditions() error {
 	preconditions := deployment.strategy.Preconditions
 

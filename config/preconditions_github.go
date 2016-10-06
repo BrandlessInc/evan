@@ -23,8 +23,36 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment Deployment) Precon
 	return createResult(gh, result)
 }
 
-type GithubNeedsMergePrecondition struct {
-	// The branch which needs to me merged into the topic branch before that
-	// topic branch can be deployed.
-	BaseBranch string
+// Require that the branch for deployment not be behind the default branch
+// on GitHub. If `AutoMerge` is true then it will try to create a merge via
+// the GitHub API if the deployed ref is behind.
+type GithubRequireAheadPrecondition struct {
+	AutoMerge bool
+}
+
+// Compares the ref being deployed against the default branch on GitHub to
+// determine whether or not a merge needs to happen. Returns `false` if it's
+// a force deployment.
+func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment Deployment) (bool, error) {
+	if deployment.IsForce() {
+		return false, nil
+	}
+
+	githubClient := deployment.GithubClient()
+	repo := deployment.Application().Repository
+
+	repoOnGithub, err := repo.Get(githubClient)
+	if err != nil {
+		return false, err
+	}
+
+	base := *repoOnGithub.DefaultBranch
+	head := deployment.Ref()
+
+	comparison, err := repo.CompareCommits(githubClient, base, head)
+	if err != nil {
+		return false, err
+	}
+
+	return (*comparison.BehindBy > 0), nil
 }

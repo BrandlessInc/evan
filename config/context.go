@@ -9,6 +9,7 @@ type Deployment interface {
 	Ref() string
 	GithubClient() *github.Client
 	Flags() map[string]interface{}
+	IsForce() bool
 
 	// Some object representing the request that initiated this deployment,
 	// eg. `*github.DeploymentEvent`.
