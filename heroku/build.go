@@ -1,8 +1,8 @@
 package heroku
 
 import (
-	"bytes"
-	"io"
+	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -12,26 +12,14 @@ type SourceBlob struct {
 	Version  string `json:"url"`
 }
 
-type Client struct {
-	Token string
-	httpClient *http.Client
-}
-
-func (c *Client) BaseUrl() string {
-	return "https://api.heroku.com"
-}
-
-func (c *Client) MakeRequest(method, url string, body *[]byte) error {
-	var bodyReader io.Reader
-	if body != nil {
-		bodyReader = bytes.NewReader(*body)
-	}
-
-	req, err := http.NewRequest(method, url, bodyReader)
+func (c *Client) BuildCreate(appId string, sourceBlob *SourceBlob) (*http.Response, error) {
+	body, err := json.Marshal(map[string]interface{}{
+		"source_blob": sourceBlob,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = c.httpClient.Do(req)
-	return err
+	url := c.BaseUrl() + fmt.Sprintf("/apps/%v/builds", appId)
+	return c.MakeRequest("POST", url, &body)
 }
