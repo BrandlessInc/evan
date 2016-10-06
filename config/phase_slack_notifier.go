@@ -10,6 +10,10 @@ type SlackNotifierPhase struct {
 	Format  func(Deployment) (string, error)
 }
 
+func (snp *SlackNotifierPhase) CanPreload() bool {
+	return false
+}
+
 func (snp *SlackNotifierPhase) HasExecuted(deployment Deployment) (bool, error) {
 	return false, nil
 }
