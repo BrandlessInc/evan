@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/Everlane/evan/common"
-
-	"github.com/google/go-github/github"
 )
 
 type GithubCombinedStatusPrecondition struct{}
@@ -43,7 +41,7 @@ func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment common.Deploymen
 	}
 
 	repo := deployment.Application().Repository()
-	githubRepo := &GithubRepository{
+	githubRepo := &common.GithubRepository{
 		Repository: repo,
 		GithubClient: deployment.GithubClient(),
 	}
@@ -66,25 +64,4 @@ func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment common.Deploymen
 
 func (gh *GithubRequireAheadPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
 	return createResult(gh, nil)
-}
-
-type GithubRepository struct {
-	Repository common.Repository
-	GithubClient *github.Client
-}
-
-func (repo *GithubRepository) OwnerAndName() (string, string) {
-	return repo.Repository.Owner(), repo.Repository.Name()
-}
-
-func (repo *GithubRepository) Get() (*github.Repository, error) {
-	owner, name := repo.OwnerAndName()
-	repository, _, err := repo.GithubClient.Repositories.Get(owner, name)
-	return repository, err
-}
-
-func (repo *GithubRepository) CompareCommits(base, head string) (*github.CommitsComparison, error) {
-	owner, name := repo.OwnerAndName()
-	commitsComparison, _, err := repo.GithubClient.Repositories.CompareCommits(owner, name, base, head)
-	return commitsComparison, err
 }
