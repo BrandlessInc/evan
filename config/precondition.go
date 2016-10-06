@@ -12,9 +12,6 @@ func createResult(precondition Precondition, err error) PreconditionResult {
 	}
 }
 
-// For parallelization preconditions report their statuses on a channel.
-type PreconditionResults chan PreconditionResult
-
 type Precondition interface {
-	Status(Deployment, PreconditionResults)
+	Status(Deployment) PreconditionResult
 }

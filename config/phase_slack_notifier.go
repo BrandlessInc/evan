@@ -1,44 +1,36 @@
 package config
 
 import (
-    "github.com/nlopes/slack"
+	"github.com/nlopes/slack"
 )
 
 type SlackNotifierPhase struct {
-    Client *slack.Client
-    Channel string
-    Format func(Deployment) (string, error)
+	Client  *slack.Client
+	Channel string
+	Format  func(Deployment) (string, error)
 }
 
-func (snp *SlackNotifierPhase) CanPreload() bool {
-    return false
-}
-
-func (snp *SlackNotifierPhase) CanExecute() (bool, error) {
-    return true, nil
-}
-
-func (snp *SlackNotifierPhase) IsExecuting() (bool, error) {
-    // This executes immediately, so we don't need to poll its status.
-    return false, nil
-}
-
-func (snp *SlackNotifierPhase) HasExecuted() (bool, error) {
-    // Assume it's already happened.
-    return true, nil
+func (snp *SlackNotifierPhase) HasExecuted(deployment Deployment) (bool, error) {
+	return false, nil
 }
 
 func (snp *SlackNotifierPhase) Execute(deployment Deployment) (ExecuteStatus, error) {
-    message, err := snp.Format(deployment)
-    if err != nil {
-        return ERROR, err
-    }
+	message, err := snp.Format(deployment)
+	if err != nil {
+		return ERROR, err
+	}
 
-    params := slack.NewPostMessageParameters()
-    _, _, err = snp.Client.PostMessage(snp.Channel, message, params)
-    if err != nil {
-        return ERROR, err
-    }
+	// If the `Format` function returned an empty strings that means we
+	// shouldn't send a message to Slack.
+	if message == "" {
+		return DONE, nil
+	}
 
-    return DONE, nil
+	params := slack.NewPostMessageParameters()
+	_, _, err = snp.Client.PostMessage(snp.Channel, message, params)
+	if err != nil {
+		return ERROR, err
+	}
+
+	return DONE, nil
 }
