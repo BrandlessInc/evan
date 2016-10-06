@@ -58,7 +58,7 @@ func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.
 		return
 	}
 
-	event := req.Header["X-GitHub-Event"][0]
+	event := req.Header.Get("X-GitHub-Event")
 
 	if event == "deployment" {
 		var deploymentEvent github.DeploymentEvent
