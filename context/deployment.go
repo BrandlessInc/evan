@@ -49,6 +49,10 @@ func (deployment *Deployment) SetInitiator(initiator interface{}) {
 	deployment.initiator = initiator
 }
 
+func (deployment *Deployment) Flags() map[string]interface{} {
+	return deployment.flags
+}
+
 func (deployment *Deployment) RunPreconditions() error {
 	preconditions := deployment.strategy.Preconditions
 
