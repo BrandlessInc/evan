@@ -37,6 +37,10 @@ func (deployment *Deployment) Application() common.Application {
 	return deployment.application
 }
 
+func (deployment *Deployment) Environment() string {
+	return deployment.environment
+}
+
 func (deployment *Deployment) Ref() string {
 	return deployment.ref
 }
