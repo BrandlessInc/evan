@@ -12,33 +12,15 @@ import (
 	"github.com/google/go-github/github"
 )
 
-type GithubEventHandler struct {
-	Applications *config.Applications
-	PreDeployment func(*http.Request, *context.Deployment) error
-}
-
-func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, deploymentEvent *github.DeploymentEvent) error {
-	app := handler.Applications.FindApplicationForGithubRepository(deploymentEvent.Repo)
-
-	environment := *deploymentEvent.Deployment.Environment
+func createDeployment(app *config.Application, environment string, ref string) *context.Deployment {
 	strategy := app.DeployEnvironment(environment)
 
-	deployment := &context.Deployment{
+	return &context.Deployment{
 		Application: app,
 		Environment: environment,
-		Strategy: strategy,
-		Ref: *deploymentEvent.Deployment.Ref,
-		Initiator: deploymentEvent,
+		Strategy:    strategy,
+		Ref:         ref,
 	}
-
-	if handler.PreDeployment != nil {
-		err := handler.PreDeployment(req, deployment)
-		if err != nil {
-			return err
-		}
-	}
-
-	return deployment.Run()
 }
 
 func respondWithError(res http.ResponseWriter, err error) {
@@ -49,6 +31,29 @@ func respondWithOk(res http.ResponseWriter, message string) {
 	res.Header().Set("Content-Type", "text/plain")
 	res.WriteHeader(200)
 	fmt.Fprintln(res, message)
+}
+
+type GithubEventHandler struct {
+	Applications  *config.Applications
+	PreDeployment func(*http.Request, *context.Deployment) error
+}
+
+func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, deploymentEvent *github.DeploymentEvent) error {
+	app := handler.Applications.FindApplicationForGithubRepository(deploymentEvent.Repo)
+	environment := *deploymentEvent.Deployment.Environment
+	ref := *deploymentEvent.Deployment.Ref
+
+	deployment := createDeployment(app, environment, ref)
+	deployment.Initiator = deploymentEvent
+
+	if handler.PreDeployment != nil {
+		err := handler.PreDeployment(req, deployment)
+		if err != nil {
+			return err
+		}
+	}
+
+	return deployment.Run()
 }
 
 func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
