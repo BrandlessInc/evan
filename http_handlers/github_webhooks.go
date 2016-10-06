@@ -13,29 +13,28 @@ import (
 )
 
 type GithubEventHandler struct {
-	applications *config.Applications
-	githubClient *github.Client
+	Applications *config.Applications
+	PreDeployment func(*http.Request, *context.Deployment) error
 }
 
-func NewGithubEventHandler(applications *config.Applications, githubClient *github.Client) *GithubEventHandler {
-	return &GithubEventHandler{
-		applications: applications,
-		githubClient: githubClient,
-	}
-}
-
-func (handler *GithubEventHandler) HandleDeploymentEvent(deploymentEvent *github.DeploymentEvent) error {
-	app := handler.applications.FindApplicationForGithubRepository(deploymentEvent.Repo)
+func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, deploymentEvent *github.DeploymentEvent) error {
+	app := handler.Applications.FindApplicationForGithubRepository(deploymentEvent.Repo)
 
 	environment := *deploymentEvent.Deployment.Environment
 	strategy := app.DeployEnvironment(environment)
 
-	_ = &context.Deployment{
+	deployment := &context.Deployment{
 		Application: app,
 		Environment: environment,
 		Strategy: strategy,
 		Ref: *deploymentEvent.Deployment.Ref,
-		GithubClient: handler.githubClient,
+	}
+
+	if handler.PreDeployment != nil {
+		err := handler.PreDeployment(req, deployment)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -14,3 +14,11 @@ type Deployment struct {
 	Ref          string
 	GithubClient *github.Client
 }
+
+func (deployment *Deployment) GetGithubClient() *github.Client {
+	return deployment.GithubClient
+}
+
+func (deployment *Deployment) GetRef() string {
+	return deployment.Ref
+}
