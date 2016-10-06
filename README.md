@@ -11,3 +11,7 @@ Evan is like heaven for your deployment automation.
     - `Strategy`: Strategies determine how the application should be deployed. A strategy consists *preconditions* and *phases*. Once all the preconditions are met it proceeds with executing the phases in order.
 - **context**: Evan is stateless. Every time it is invoked it queries your ops infrastructure—GitHub, Heroku, etc.—to determine what's going on and where it may be in the process of executing a strategy.
 - **http_handlers**: Provides common handlers conforming to the Go `net/http.Handler` interface for receiving various events and commands.
+
+## License
+
+Released under the MIT license, see [LICENSE](LICENSE) for details.
