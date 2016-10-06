@@ -19,8 +19,8 @@ func createDeployment(app *config.Application, environment string, ref string) *
 }
 
 type GithubEventHandler struct {
-	Applications  *config.Applications
-	PreDeployment func(*http.Request, *context.Deployment) error
+	Applications        *config.Applications
+	PreDeployment       func(*http.Request, *context.Deployment) error
 	PreDeploymentStatus func(*http.Request, *context.Deployment) error
 }
 
