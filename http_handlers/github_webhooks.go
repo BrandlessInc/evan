@@ -28,6 +28,7 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, depl
 		Environment: environment,
 		Strategy: strategy,
 		Ref: *deploymentEvent.Deployment.Ref,
+		Initiator: deploymentEvent,
 	}
 
 	if handler.PreDeployment != nil {
@@ -66,9 +67,18 @@ func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.
 			respondWithError(res, err)
 			return
 		}
+
+		err = handler.HandleDeploymentEvent(req, &deploymentEvent)
+		if err != nil {
+			respondWithError(res, err)
+			return
+		}
+
 		respondWithOk(res, "OK")
+
 	} else if event == "ping" {
 		respondWithOk(res, "PONG")
+
 	} else {
 		message := fmt.Sprintf("Cannot handle event: %v", event)
 		http.Error(res, message, http.StatusNotImplemented)
