@@ -72,6 +72,9 @@ func (deployment *Deployment) RunPhases() error {
 		}
 
 		status, err := phase.Execute(deployment)
+		if err != nil {
+			return err
+		}
 
 		switch status {
 		case config.DONE:
@@ -80,11 +83,9 @@ func (deployment *Deployment) RunPhases() error {
 			// This "run" of the strategy is done for now if we're executing
 			return nil
 		case config.ERROR:
-			if err != nil {
-				return err
-			} else {
-				return fmt.Errorf("An unknown error occurred in phase: %v", phase)
-			}
+			// We've already returned the error if it's present; so if we
+			// reach here then it's `nil` and we don't know what's gone wrong
+			return fmt.Errorf("An unknown error occurred in phase: %v", phase)
 		default:
 			return fmt.Errorf("Unknown status: %#v", status)
 		}

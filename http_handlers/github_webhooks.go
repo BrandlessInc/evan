@@ -23,22 +23,19 @@ func createDeployment(app *config.Application, environment string, ref string) *
 	}
 }
 
-func respondWithError(res http.ResponseWriter, err error) {
-	http.Error(res, fmt.Sprintf("%v", err), http.StatusInternalServerError)
-}
-
-func respondWithOk(res http.ResponseWriter, message string) {
-	res.Header().Set("Content-Type", "text/plain")
-	res.WriteHeader(200)
-	fmt.Fprintln(res, message)
-}
-
 type GithubEventHandler struct {
 	Applications  *config.Applications
 	PreDeployment func(*http.Request, *context.Deployment) error
+	PreDeploymentStatus func(*http.Request, *context.Deployment) error
 }
 
-func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, deploymentEvent *github.DeploymentEvent) error {
+func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body []byte) error {
+	var deploymentEvent github.DeploymentEvent
+	err := json.Unmarshal(body, &deploymentEvent)
+	if err != nil {
+		return err
+	}
+
 	app := handler.Applications.FindApplicationForGithubRepository(deploymentEvent.Repo)
 	environment := *deploymentEvent.Deployment.Environment
 	ref := *deploymentEvent.Deployment.Ref
@@ -56,6 +53,30 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, depl
 	return deployment.Run()
 }
 
+func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request, body []byte) error {
+	var deploymentStatusEvent github.DeploymentStatusEvent
+	err := json.Unmarshal(body, &deploymentStatusEvent)
+	if err != nil {
+		return err
+	}
+
+	app := handler.Applications.FindApplicationForGithubRepository(deploymentStatusEvent.Repo)
+	environment := *deploymentStatusEvent.Deployment.Environment
+	ref := *deploymentStatusEvent.Deployment.Ref
+
+	deployment := createDeployment(app, environment, ref)
+	deployment.Initiator = deploymentStatusEvent
+
+	if handler.PreDeploymentStatus != nil {
+		err := handler.PreDeploymentStatus(req, deployment)
+		if err != nil {
+			return err
+		}
+	}
+
+	return deployment.Run()
+}
+
 func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -65,27 +86,23 @@ func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.
 
 	event := req.Header.Get("X-GitHub-Event")
 
-	if event == "deployment" {
-		var deploymentEvent github.DeploymentEvent
-		err := json.Unmarshal(body, &deploymentEvent)
-		if err != nil {
-			respondWithError(res, err)
-			return
-		}
-
-		err = handler.HandleDeploymentEvent(req, &deploymentEvent)
-		if err != nil {
-			respondWithError(res, err)
-			return
-		}
-
-		respondWithOk(res, "OK")
-
-	} else if event == "ping" {
-		respondWithOk(res, "PONG")
-
+	err = handler.HandleEvent(req, event, body)
+	if err != nil {
+		respondWithError(res, err)
 	} else {
-		message := fmt.Sprintf("Cannot handle event: %v", event)
-		http.Error(res, message, http.StatusNotImplemented)
+		respondWithOk(res, "OK")
+	}
+}
+
+func (handler *GithubEventHandler) HandleEvent(req *http.Request, event string, body []byte) error {
+	switch event {
+	case "deployment":
+		return handler.HandleDeploymentEvent(req, body)
+	case "deployment_status":
+		return handler.HandleDeploymentStatusEvent(req, body)
+	case "ping":
+		return nil
+	default:
+		return fmt.Errorf("Cannot handle event: %v", event)
 	}
 }
