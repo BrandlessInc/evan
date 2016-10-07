@@ -1,8 +1,9 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/Everlane/evan/common"
-	"github.com/Everlane/evan/config"
 
 	"github.com/google/go-github/github"
 )
@@ -11,7 +12,7 @@ import (
 type Deployment struct {
 	application common.Application
 	environment string
-	strategy    *config.Strategy
+	strategy    common.Strategy
 	ref         string
 	flags       map[string]interface{}
 
@@ -24,14 +25,19 @@ type Deployment struct {
 	lastError    error
 }
 
-func NewDeployment(app common.Application, environment string, strategy *config.Strategy, ref string) *Deployment {
+func NewDeployment(app common.Application, environment string, ref string) (*Deployment, error) {
+	strategy := app.StrategyForEnvironment(environment)
+	if strategy == nil {
+		return nil, fmt.Errorf("Deployment strategy not found for environment: '%v'", environment)
+	}
+
 	return &Deployment{
 		application:  app,
 		environment:  environment,
 		strategy:     strategy,
 		ref:          ref,
 		currentState: common.DEPLOYMENT_PENDING,
-	}
+	}, nil
 }
 
 func (deployment *Deployment) Application() common.Application {
@@ -105,7 +111,7 @@ func (deployment *Deployment) Status() common.DeploymentStatus {
 func (deployment *Deployment) CheckPreconditions() error {
 	deployment.setStateAndSave(common.RUNNING_PRECONDITIONS)
 
-	preconditions := deployment.strategy.Preconditions
+	preconditions := deployment.strategy.Preconditions()
 
 	resultChan := make(chan common.PreconditionResult)
 	for _, precondition := range preconditions {
@@ -127,7 +133,7 @@ func (deployment *Deployment) CheckPreconditions() error {
 // Internal implementation of running phases. Manages setting
 // `deployment.currentPhase` to the phase currently executing.
 func (deployment *Deployment) runPhases() error {
-	phases := deployment.strategy.Phases
+	phases := deployment.strategy.Phases()
 	for _, phase := range phases {
 		deployment.currentPhase = phase
 
@@ -166,7 +172,7 @@ func (deployment *Deployment) RunPhases() error {
 // need before executing. This will run those preloads in parallel.
 func (deployment *Deployment) RunPhasePreloads() error {
 	preloadablePhases := make([]common.PreloadablePhase, 0)
-	for _, phase := range deployment.strategy.Phases {
+	for _, phase := range deployment.strategy.Phases() {
 		if phase.CanPreload() {
 			preloadablePhases = append(preloadablePhases, phase.(common.PreloadablePhase))
 		}

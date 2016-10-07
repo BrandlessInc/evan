@@ -52,4 +52,13 @@ func (wrapper *CommonApplicationWrapper) Repository() common.Repository {
 	return wrapper.app.Repository
 }
 
+func (wrapper *CommonApplicationWrapper) StrategyForEnvironment(environment string) common.Strategy {
+	strategy := wrapper.app.DeployEnvironment(environment)
+	if strategy == nil {
+		return nil
+	}
+
+	return &CommonStrategyWrapper{strategy: strategy}
+}
+
 type Target interface{}

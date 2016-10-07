@@ -12,10 +12,8 @@ import (
 	"github.com/google/go-github/github"
 )
 
-func createDeployment(app *config.Application, environment string, ref string) *context.Deployment {
-	strategy := app.DeployEnvironment(environment)
-
-	return context.NewDeployment(app.Wrapper(), environment, strategy, ref)
+func createDeployment(app *config.Application, environment string, ref string) (*context.Deployment, error) {
+	return context.NewDeployment(app.Wrapper(), environment, ref)
 }
 
 type GithubEventHandler struct {
@@ -35,7 +33,10 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body
 	environment := *deploymentEvent.Deployment.Environment
 	ref := *deploymentEvent.Deployment.Ref
 
-	deployment := createDeployment(app, environment, ref)
+	deployment, err := createDeployment(app, environment, ref)
+	if err != nil {
+		return err
+	}
 
 	if handler.PreDeployment != nil {
 		err := handler.PreDeployment(req, deployment)
@@ -58,7 +59,10 @@ func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request
 	environment := *deploymentStatusEvent.Deployment.Environment
 	ref := *deploymentStatusEvent.Deployment.Ref
 
-	deployment := createDeployment(app, environment, ref)
+	deployment, err := createDeployment(app, environment, ref)
+	if err != nil {
+		return err
+	}
 
 	if handler.PreDeploymentStatus != nil {
 		err := handler.PreDeploymentStatus(req, deployment)
