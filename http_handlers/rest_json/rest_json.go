@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/Everlane/evan/common"
 	"github.com/Everlane/evan/config"
 	"github.com/Everlane/evan/context"
 )
@@ -22,6 +23,7 @@ func (cdr *CreateDeploymentRequest) newDeployment(app *config.Application) (*con
 
 type CreateDeploymentHandler struct {
 	Applications *config.Applications
+	PreDeployment func(*http.Request, common.Deployment) error
 }
 
 func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
@@ -49,6 +51,14 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 	if err != nil {
 		respondWithError(res, err, http.StatusInternalServerError)
 		return
+	}
+
+	if handler.PreDeployment != nil {
+		err = handler.PreDeployment(req, deployment)
+		if err != nil {
+			respondWithError(res, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	err = deployment.CheckPreconditions()
