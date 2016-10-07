@@ -67,15 +67,22 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
-	// Start the party!
-	go deployment.RunPhases()
-
-	message := fmt.Sprintf(
-		"Deploying %v to %v for %v",
+	humanDescription := fmt.Sprintf(
+		"%v to %v for %v",
 		deploymentRequest.Ref,
 		deploymentRequest.Environment,
 		deploymentRequest.Application,
 	)
+
+	// Start the party!
+	go func() {
+		err := deployment.RunPhases()
+		if err != nil {
+			fmt.Printf("Error deploying %v: %v", humanDescription, err)
+		}
+	}()
+
+	message := fmt.Sprintf("Deploying %v", humanDescription)
 	respondWithOk(res, message)
 }
 
