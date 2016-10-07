@@ -7,12 +7,12 @@ import (
 )
 
 type Applications struct {
-	Map map[string]*Application
+	List []*Application
 	Store common.Store
 }
 
 func (apps *Applications) FindApplicationForGithubRepository(githubRepo *github.Repository) *Application {
-	for _, app := range apps.Map {
+	for _, app := range apps.List {
 		appRepo := app.Repository
 
 		if appRepo.Owner() == *githubRepo.Owner.Login && appRepo.Name() == *githubRepo.Name {
@@ -24,7 +24,12 @@ func (apps *Applications) FindApplicationForGithubRepository(githubRepo *github.
 }
 
 func (apps *Applications) FindApplicationByName(name string) *Application {
-	for _, app := range apps.Map {
+	for _, app := range apps.List {
+		// Ignore apps without a name
+		if app.Name == "" {
+			continue
+		}
+
 		if app.Name == name {
 			return app
 		}
