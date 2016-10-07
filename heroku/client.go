@@ -16,6 +16,13 @@ type Client struct {
 	httpClient *http.Client
 }
 
+func NewClient(token string) *Client {
+	return &Client{
+		Token: token,
+		httpClient: &http.Client{},
+	}
+}
+
 func (c *Client) BaseUrl() string {
 	return "https://api.heroku.com"
 }
