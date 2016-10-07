@@ -11,9 +11,9 @@ import (
 )
 
 type CreateDeploymentRequest struct {
-	application string `json:"application"`
-	environment string `json:"environment"`
-	ref         string `json:"ref"`
+	Application string `json:"application"`
+	Environment string `json:"environment"`
+	Ref         string `json:"ref"`
 }
 
 func (cdr *CreateDeploymentRequest) newDeployment(app *config.Application) (*context.Deployment, error) {
