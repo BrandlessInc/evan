@@ -25,6 +25,7 @@ type Deployment interface {
 	Environment() string
 	Ref() string
 	GithubClient() *github.Client
+	SetGithubClient(*github.Client)
 	Flags() map[string]interface{}
 	IsForce() bool
 
