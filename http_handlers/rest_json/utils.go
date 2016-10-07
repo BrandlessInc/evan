@@ -2,7 +2,6 @@ package rest_json
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -20,11 +19,11 @@ func respondWithError(res http.ResponseWriter, err error, code int) {
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(code)
 	body := bodyWithMessage(err.Error())
-	fmt.Fprintln(res, body)
+	res.Write(body)
 }
 
 func respondWithOk(res http.ResponseWriter, message string) {
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(200)
-	fmt.Fprintln(res, bodyWithMessage(message))
+	res.Write(bodyWithMessage(message))
 }
