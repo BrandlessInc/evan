@@ -32,7 +32,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
-	fmt.Printf("deploymentRequest: %+v", deploymentRequest)
+	fmt.Printf("deploymentRequest: %+v\n", deploymentRequest)
 
 	app := handler.Applications.FindApplicationByName(deploymentRequest.application)
 	if app == nil {
@@ -71,11 +71,14 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 	respondWithOk(res, message)
 }
 
-func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val interface{}) error {
+func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val *CreateDeploymentRequest) error {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return err
 	}
 
-	return json.Unmarshal(body, &val)
+	fmt.Printf("body: %v\n", string(body))
+	fmt.Printf("val: %+v\n", val)
+
+	return json.Unmarshal(body, val)
 }
