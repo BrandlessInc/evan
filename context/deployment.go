@@ -59,6 +59,17 @@ func (deployment *Deployment) SetStoreAndSave(store common.Store) error {
 	return store.SaveDeployment(deployment)
 }
 
+// Will panic if it is unable to save. This will be called *after*
+// `SetStoreAndSave` should have been called, so we're assuming that if that
+// worked then this should also work.
+func (deployment *Deployment) setStateAndSave(state common.DeploymentState) {
+	deployment.currentState = state
+	err := deployment.store.SaveDeployment(deployment)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (deployment *Deployment) Flags() map[string]interface{} {
 	return deployment.flags
 }
@@ -92,7 +103,7 @@ func (deployment *Deployment) Status() common.DeploymentStatus {
 }
 
 func (deployment *Deployment) CheckPreconditions() error {
-	deployment.currentState = common.RUNNING_PRECONDITIONS
+	deployment.setStateAndSave(common.RUNNING_PRECONDITIONS)
 
 	preconditions := deployment.strategy.Preconditions
 
@@ -113,7 +124,8 @@ func (deployment *Deployment) CheckPreconditions() error {
 	return nil
 }
 
-// Internal implementation of running phases.
+// Internal implementation of running phases. Manages setting
+// `deployment.currentPhase` to the phase currently executing.
 func (deployment *Deployment) runPhases() error {
 	phases := deployment.strategy.Phases
 	for _, phase := range phases {
@@ -128,26 +140,30 @@ func (deployment *Deployment) runPhases() error {
 	return nil
 }
 
-// Wrapper around the internal implementation with additional state management.
+// Runs all the phases configured in the `Strategy`. Sets `currentState` and
+// `currentPhase` fields as appropriate. If an error occurs it will also set
+// the `lastError` field to that error.
 func (deployment *Deployment) RunPhases() error {
 	err := deployment.RunPhasePreloads()
 	if err != nil {
 		return err
 	}
 
-	deployment.currentState = common.RUNNING_PHASE
+	deployment.setStateAndSave(common.RUNNING_PHASE)
 
 	err = deployment.runPhases()
 	if err != nil {
 		deployment.lastError = err
-		deployment.currentState = common.DEPLOYMENT_ERROR
+		deployment.setStateAndSave(common.DEPLOYMENT_ERROR)
 		return err
 	} else {
-		deployment.currentState = common.DEPLOYMENT_DONE
+		deployment.setStateAndSave(common.DEPLOYMENT_DONE)
 		return nil
 	}
 }
 
+// Phases can expose preloads to gather any additional information they may
+// need before executing. This will run those preloads in parallel.
 func (deployment *Deployment) RunPhasePreloads() error {
 	preloadablePhases := make([]common.PreloadablePhase, 0)
 	for _, phase := range deployment.strategy.Phases {
