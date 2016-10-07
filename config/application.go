@@ -12,7 +12,7 @@ type Applications struct {
 
 func (apps *Applications) FindApplicationForGithubRepository(githubRepo *github.Repository) *Application {
 	for _, app := range apps.Map {
-		appRepo := app.Repository()
+		appRepo := app.Repository
 
 		if appRepo.Owner() == *githubRepo.Owner.Login && appRepo.Name() == *githubRepo.Name {
 			return app
@@ -23,7 +23,9 @@ func (apps *Applications) FindApplicationForGithubRepository(githubRepo *github.
 }
 
 type Application struct {
-	Repo         common.Repository
+	Name       string
+	Repository common.Repository
+
 	Environments []string
 
 	// Called to determine the target and strategy to use for deploying to a
@@ -31,8 +33,23 @@ type Application struct {
 	DeployEnvironment func(string) *Strategy
 }
 
-func (app *Application) Repository() common.Repository {
-	return app.Repo
+func (app *Application) Wrapper() *CommonApplicationWrapper {
+	return &CommonApplicationWrapper{
+		app: app,
+	}
+}
+
+// Wraps `Application` struct to fulfill the `common.Application` interface.
+type CommonApplicationWrapper struct {
+	app *Application
+}
+
+func (wrapper *CommonApplicationWrapper) Name() string {
+	return wrapper.app.Name
+}
+
+func (wrapper *CommonApplicationWrapper) Repository() common.Repository {
+	return wrapper.app.Repository
 }
 
 type Target interface{}

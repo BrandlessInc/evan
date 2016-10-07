@@ -15,7 +15,7 @@ import (
 func createDeployment(app *config.Application, environment string, ref string) *context.Deployment {
 	strategy := app.DeployEnvironment(environment)
 
-	return context.NewDeployment(app, environment, strategy, ref)
+	return context.NewDeployment(app.Wrapper(), environment, strategy, ref)
 }
 
 type GithubEventHandler struct {

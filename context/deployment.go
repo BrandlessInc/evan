@@ -9,27 +9,27 @@ import (
 
 // Stores state relating to a deployment.
 type Deployment struct {
-	application  *config.Application
-	environment  string
-	strategy     *config.Strategy
-	ref          string
-	flags        map[string]interface{}
+	application common.Application
+	environment string
+	strategy    *config.Strategy
+	ref         string
+	flags       map[string]interface{}
 
 	githubClient *github.Client
-	store common.Store
+	store        common.Store
 
 	// Internal state
 	currentState common.DeploymentState
 	currentPhase common.Phase
-	lastError error
+	lastError    error
 }
 
-func NewDeployment(app *config.Application, environment string, strategy *config.Strategy, ref string) *Deployment {
+func NewDeployment(app common.Application, environment string, strategy *config.Strategy, ref string) *Deployment {
 	return &Deployment{
-		application: app,
-		environment: environment,
-		strategy: strategy,
-		ref: ref,
+		application:  app,
+		environment:  environment,
+		strategy:     strategy,
+		ref:          ref,
 		currentState: common.DEPLOYMENT_PENDING,
 	}
 }

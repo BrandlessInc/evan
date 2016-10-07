@@ -32,6 +32,7 @@ type Deployment interface {
 }
 
 type Application interface {
+	Name() string
 	Repository() Repository
 }
 
