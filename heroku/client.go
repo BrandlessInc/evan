@@ -2,8 +2,6 @@ package heroku
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -18,28 +16,8 @@ type Client struct {
 	httpClient *http.Client
 }
 
-type SourceBlob struct {
-	Checksum string `json:"checksum,omitempty"`
-	Url      string `json:"url,omitempty"`
-	Version  string `json:"version,omitempty"`
-}
-
 func (c *Client) BaseUrl() string {
 	return "https://api.heroku.com"
-}
-
-func (c *Client) BuildCreate(appId string, sourceBlob *SourceBlob) error {
-	body, err := json.Marshal(map[string]interface{}{
-		"source_blob": sourceBlob,
-	})
-	if err != nil {
-		return err
-	}
-
-	url := c.BaseUrl() + fmt.Sprintf("/apps/%v/builds", appId)
-	_, err = c.MakeRequest("POST", url, &body)
-
-	return nil
 }
 
 func (c *Client) MakeRequest(method, url string, body *[]byte) (*http.Response, error) {
@@ -52,6 +30,9 @@ func (c *Client) MakeRequest(method, url string, body *[]byte) (*http.Response, 
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Set("Accept", HEADER_ACCEPT)
+	req.Header.Set("Content-Type", HEADER_CONTENT_TYPE)
 
 	return c.httpClient.Do(req)
 }

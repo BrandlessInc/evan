@@ -22,6 +22,7 @@ type DeploymentStatus struct {
 
 type Deployment interface {
 	Application() Application
+	Environment() string
 	Ref() string
 	GithubClient() *github.Client
 	Flags() map[string]interface{}
