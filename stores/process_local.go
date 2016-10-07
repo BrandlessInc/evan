@@ -11,10 +11,20 @@ type ProcessLocalStore struct {
 	applications map[string]map[string]common.Deployment
 }
 
+func NewProcessLocalStore() *ProcessLocalStore {
+	return &ProcessLocalStore{
+		applications: make(map[string]map[string]common.Deployment),
+	}
+}
+
 func (store *ProcessLocalStore) SaveDeployment(deployment common.Deployment) error {
-	applicationKey := store.keyForApplication(deployment.Application())
+	application := store.keyForApplication(deployment.Application())
 	environment := deployment.Environment()
-	store.applications[applicationKey][environment] = deployment
+
+	if store.applications[application] == nil {
+		store.applications[application] = make(map[string]common.Deployment)
+	}
+	store.applications[application][environment] = deployment
 	return nil
 }
 
