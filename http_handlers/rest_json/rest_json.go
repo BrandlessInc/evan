@@ -45,6 +45,12 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
+	err = deployment.SetStoreAndSave(handler.Applications.Store)
+	if err != nil {
+		respondWithError(res, err, http.StatusInternalServerError)
+		return
+	}
+
 	err = deployment.CheckPreconditions()
 	if err != nil {
 		respondWithError(res, err, http.StatusPreconditionFailed)

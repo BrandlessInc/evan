@@ -8,6 +8,7 @@ import (
 
 type Applications struct {
 	Map map[string]*Application
+	Store common.Store
 }
 
 func (apps *Applications) FindApplicationForGithubRepository(githubRepo *github.Repository) *Application {
