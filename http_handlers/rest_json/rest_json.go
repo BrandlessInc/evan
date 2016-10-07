@@ -2,6 +2,7 @@ package http_handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -30,6 +31,36 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		respondWithError(res, err, http.StatusInternalServerError)
 		return
 	}
+
+	app := handler.Applications.FindApplicationByName(deploymentRequest.application)
+	if app == nil {
+		err = fmt.Errorf("Application not found: '%v'", deploymentRequest.application)
+		respondWithError(res, err, http.StatusNotFound)
+		return
+	}
+
+	deployment, err := deploymentRequest.newDeployment(app)
+	if err != nil {
+		respondWithError(res, err, http.StatusNotFound)
+		return
+	}
+
+	err = deployment.CheckPreconditions()
+	if err != nil {
+		respondWithError(res, err, http.StatusPreconditionFailed)
+		return
+	}
+
+	// Start the party!
+	go deployment.RunPhases()
+
+	message := fmt.Sprintf(
+		"Deploying %v to %v for %v",
+		deploymentRequest.ref,
+		deploymentRequest.environment,
+		deploymentRequest.application,
+	)
+	respondWithOk(res, message)
 }
 
 func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val interface{}) error {

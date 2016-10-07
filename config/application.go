@@ -22,6 +22,16 @@ func (apps *Applications) FindApplicationForGithubRepository(githubRepo *github.
 	return nil
 }
 
+func (apps *Applications) FindApplicationByName(name string) *Application {
+	for _, app := range apps.Map {
+		if app.Name == name {
+			return app
+		}
+	}
+
+	return nil
+}
+
 type Application struct {
 	Name       string
 	Repository common.Repository

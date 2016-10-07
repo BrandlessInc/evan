@@ -6,19 +6,25 @@ import (
 	"net/http"
 )
 
-func respondWithError(res http.ResponseWriter, err error, code int) {
+func bodyWithMessage(message string) []byte {
 	body, err := json.Marshal(map[string]interface{}{
-		"message": err.Error(),
+		"message": message,
 	})
 	if err != nil {
 		panic(err) // Something real bad happened
 	}
+	return body
+}
 
-	http.Error(res, string(body), code)
+func respondWithError(res http.ResponseWriter, err error, code int) {
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(code)
+	body := bodyWithMessage(err.Error())
+	fmt.Fprintln(res, body)
 }
 
 func respondWithOk(res http.ResponseWriter, message string) {
-	res.Header().Set("Content-Type", "text/plain")
+	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(200)
-	fmt.Fprintln(res, message)
+	fmt.Fprintln(res, bodyWithMessage(message))
 }
