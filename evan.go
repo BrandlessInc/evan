@@ -5,6 +5,7 @@ import (
 	_ "github.com/Everlane/evan/config"
 	_ "github.com/Everlane/evan/context"
 	_ "github.com/Everlane/evan/http_handlers"
+	_ "github.com/Everlane/evan/http_handlers/rest_json"
 	_ "github.com/Everlane/evan/phases"
 	_ "github.com/Everlane/evan/preconditions"
 	_ "github.com/Everlane/evan/stores"
