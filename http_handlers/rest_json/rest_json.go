@@ -17,7 +17,7 @@ type CreateDeploymentRequest struct {
 }
 
 func (cdr *CreateDeploymentRequest) newDeployment(app *config.Application) (*context.Deployment, error) {
-	return context.NewDeployment(app.Wrapper(), cdr.environment, cdr.ref)
+	return context.NewDeployment(app.Wrapper(), cdr.Environment, cdr.Ref)
 }
 
 type CreateDeploymentHandler struct {
@@ -34,9 +34,11 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 
 	fmt.Printf("deploymentRequest: %+v\n", deploymentRequest)
 
-	app := handler.Applications.FindApplicationByName(deploymentRequest.application)
+	app := handler.Applications.FindApplicationByName(deploymentRequest.Application)
+	fmt.Printf("app: %+v\n", app)
+	fmt.Printf("app: %+v\n", app == nil)
 	if app == nil {
-		err = fmt.Errorf("Application not found: '%v'", deploymentRequest.application)
+		err = fmt.Errorf("Application not found: '%v'", deploymentRequest.Application)
 		respondWithError(res, err, http.StatusNotFound)
 		return
 	}
@@ -64,9 +66,9 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 
 	message := fmt.Sprintf(
 		"Deploying %v to %v for %v",
-		deploymentRequest.ref,
-		deploymentRequest.environment,
-		deploymentRequest.application,
+		deploymentRequest.Ref,
+		deploymentRequest.Environment,
+		deploymentRequest.Application,
 	)
 	respondWithOk(res, message)
 }
