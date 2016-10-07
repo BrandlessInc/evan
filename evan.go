@@ -7,4 +7,5 @@ import (
 	_ "github.com/Everlane/evan/http_handlers"
 	_ "github.com/Everlane/evan/phases"
 	_ "github.com/Everlane/evan/preconditions"
+	_ "github.com/Everlane/evan/stores"
 )

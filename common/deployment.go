@@ -39,3 +39,9 @@ type Repository interface {
 	Owner() string
 	Name() string
 }
+
+func CanonicalNameForRepository(repository Repository) string {
+	owner := repository.Owner()
+	name := repository.Name()
+	return owner + "/" + name
+}
