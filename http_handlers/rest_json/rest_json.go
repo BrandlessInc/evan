@@ -32,11 +32,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
-	fmt.Printf("deploymentRequest: %+v\n", deploymentRequest)
-
 	app := handler.Applications.FindApplicationByName(deploymentRequest.Application)
-	fmt.Printf("app: %+v\n", app)
-	fmt.Printf("app: %+v\n", app == nil)
 	if app == nil {
 		err = fmt.Errorf("Application not found: '%v'", deploymentRequest.Application)
 		respondWithError(res, err, http.StatusNotFound)
@@ -73,14 +69,11 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 	respondWithOk(res, message)
 }
 
-func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val *CreateDeploymentRequest) error {
+func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val interface{}) error {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("body: %v\n", string(body))
-	fmt.Printf("val: %+v\n", val)
 
 	return json.Unmarshal(body, val)
 }
