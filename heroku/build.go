@@ -10,7 +10,7 @@ import (
 type Build struct {
 	Id         string      `json:"id"`
 	SourceBlob *SourceBlob `json:"source_blob"`
-	Status string `json:"status"`
+	Status     string      `json:"status"`
 }
 
 type SourceBlob struct {

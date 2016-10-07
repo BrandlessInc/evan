@@ -1,7 +1,7 @@
 package preconditions
 
 import (
-    "github.com/Everlane/evan/common"
+	"github.com/Everlane/evan/common"
 )
 
 func createResult(precondition common.Precondition, err error) common.PreconditionResult {

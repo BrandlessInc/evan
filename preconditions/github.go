@@ -42,7 +42,7 @@ func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment common.Deploymen
 
 	repo := deployment.Application().Repository()
 	githubRepo := &common.GithubRepository{
-		Repository: repo,
+		Repository:   repo,
 		GithubClient: deployment.GithubClient(),
 	}
 

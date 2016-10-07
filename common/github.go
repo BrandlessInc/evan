@@ -1,29 +1,29 @@
 package common
 
 import (
-    "fmt"
-    "net/url"
+	"fmt"
+	"net/url"
 
-    "github.com/google/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 type GithubRepository struct {
-	Repository Repository
+	Repository   Repository
 	GithubClient *github.Client
 }
 
 func NewGithubRepository(repository Repository, githubClient *github.Client) *GithubRepository {
-    return &GithubRepository{
-        Repository: repository,
-        GithubClient: githubClient,
-    }
+	return &GithubRepository{
+		Repository:   repository,
+		GithubClient: githubClient,
+	}
 }
 
 func NewGithubRepositoryFromDeployment(deployment Deployment) *GithubRepository {
-    repository := deployment.Application().Repository()
-    githubClient := deployment.GithubClient()
+	repository := deployment.Application().Repository()
+	githubClient := deployment.GithubClient()
 
-    return NewGithubRepository(repository, githubClient)
+	return NewGithubRepository(repository, githubClient)
 }
 
 func (repo *GithubRepository) OwnerAndName() (string, string) {
@@ -48,29 +48,29 @@ type ArchiveFormat string
 
 const (
 	Tarball ArchiveFormat = "tarball"
-    Zipball ArchiveFormat = "zipball"
+	Zipball ArchiveFormat = "zipball"
 )
 
 // `format` should be one of "tarball" or "zipball".
 func (repo *GithubRepository) GetArchiveLink(format ArchiveFormat) (string, error) {
-    owner, name := repo.OwnerAndName()
+	owner, name := repo.OwnerAndName()
 
-    var url *url.URL
-    var err error
+	var url *url.URL
+	var err error
 
-    // Work-around for `go-github` not exporting their `archiveFormat` type.
-    switch format {
-    case Tarball:
-        url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Tarball, nil)
-    case Zipball:
-        url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Zipball, nil)
-    default:
-        return "", fmt.Errorf("Unknown archive format: '%v'", format)
-    }
+	// Work-around for `go-github` not exporting their `archiveFormat` type.
+	switch format {
+	case Tarball:
+		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Tarball, nil)
+	case Zipball:
+		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Zipball, nil)
+	default:
+		return "", fmt.Errorf("Unknown archive format: '%v'", format)
+	}
 
-    if err != nil {
-        return "", err
-    } else {
-        return url.String(), nil
-    }
+	if err != nil {
+		return "", err
+	} else {
+		return url.String(), nil
+	}
 }
