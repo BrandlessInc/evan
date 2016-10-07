@@ -32,6 +32,8 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
+	fmt.Printf("deploymentRequest: %+v", deploymentRequest)
+
 	app := handler.Applications.FindApplicationByName(deploymentRequest.application)
 	if app == nil {
 		err = fmt.Errorf("Application not found: '%v'", deploymentRequest.application)
@@ -75,5 +77,5 @@ func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val i
 		return err
 	}
 
-	return json.Unmarshal(body, val)
+	return json.Unmarshal(body, &val)
 }
