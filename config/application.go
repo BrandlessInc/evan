@@ -71,4 +71,21 @@ func (wrapper *CommonApplicationWrapper) StrategyForEnvironment(environment stri
 	return &CommonStrategyWrapper{strategy: strategy}
 }
 
+type Repository struct {
+	owner string
+	name  string
+}
+
+func NewRepository(owner, name string) *Repository {
+	return &Repository{owner: owner, name: name}
+}
+
+func (repo *Repository) Owner() string {
+	return repo.owner
+}
+
+func (repo *Repository) Name() string {
+	return repo.name
+}
+
 type Target interface{}
