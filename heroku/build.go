@@ -24,11 +24,9 @@ type buildCreateRequest struct {
 }
 
 func (c *Client) BuildCreate(appId string, sourceBlob *SourceBlob) (*Build, *http.Response, error) {
-	fmt.Printf("sourceBlob: %+v\n", sourceBlob)
 	body, err := json.Marshal(&buildCreateRequest{
 		SourceBlob: sourceBlob,
 	})
-	fmt.Printf("BuildCreate body: %v\n", string(body))
 	if err != nil {
 		return nil, nil, err
 	}
