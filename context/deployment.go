@@ -132,12 +132,13 @@ func (deployment *Deployment) CheckPreconditions() error {
 
 // Internal implementation of running phases. Manages setting
 // `deployment.currentPhase` to the phase currently executing.
-func (deployment *Deployment) runPhases() error {
+func (deployment *Deployment) runPhases(preloadResults PreloadResults) error {
 	phases := deployment.strategy.Phases()
 	for _, phase := range phases {
 		deployment.currentPhase = phase
 
-		err := phase.Execute(deployment)
+		preloadResult := preloadResults.Get(phase)
+		err := phase.Execute(deployment, preloadResult)
 		if err != nil {
 			return err
 		}
@@ -150,14 +151,14 @@ func (deployment *Deployment) runPhases() error {
 // `currentPhase` fields as appropriate. If an error occurs it will also set
 // the `lastError` field to that error.
 func (deployment *Deployment) RunPhases() error {
-	err := deployment.RunPhasePreloads()
+	results, err := deployment.RunPhasePreloads()
 	if err != nil {
 		return err
 	}
 
 	deployment.setStateAndSave(common.RUNNING_PHASE)
 
-	err = deployment.runPhases()
+	err = deployment.runPhases(results)
 	if err != nil {
 		deployment.lastError = err
 		deployment.setStateAndSave(common.DEPLOYMENT_ERROR)
@@ -168,9 +169,24 @@ func (deployment *Deployment) RunPhases() error {
 	}
 }
 
+type preloadResult struct {
+	data interface{}
+	err error
+}
+
+type PreloadResults map[common.Phase]interface{}
+
+func (results PreloadResults) Get(phase common.Phase) interface{} {
+	return results[phase]
+}
+
+func (results PreloadResults) Set(phase common.Phase, data interface{}) {
+	results[phase] = data
+}
+
 // Phases can expose preloads to gather any additional information they may
 // need before executing. This will run those preloads in parallel.
-func (deployment *Deployment) RunPhasePreloads() error {
+func (deployment *Deployment) RunPhasePreloads() (PreloadResults, error) {
 	preloadablePhases := make([]common.PreloadablePhase, 0)
 	for _, phase := range deployment.strategy.Phases() {
 		if phase.CanPreload() {
@@ -178,19 +194,23 @@ func (deployment *Deployment) RunPhasePreloads() error {
 		}
 	}
 
-	resultChan := make(chan common.PreloadResult)
+	resultChan := make(chan preloadResult)
 	for _, phase := range preloadablePhases {
 		go func() {
-			resultChan <- phase.Preload(deployment)
+			data, err := phase.Preload(deployment)
+			resultChan <- preloadResult{data: data, err: err}
 		}()
 	}
 
-	for _ = range preloadablePhases {
+	results := make(PreloadResults)
+	for _, phase := range preloadablePhases {
 		result := <-resultChan
-		if result.Error != nil {
-			return result.Error
+		if result.err != nil {
+			return nil, result.err
+		} else {
+			results.Set(phase.(common.Phase), result.data)
 		}
 	}
 
-	return nil
+	return results, nil
 }

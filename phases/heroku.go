@@ -14,12 +14,30 @@ type HerokuBuildPhase struct {
 	AppId  string
 }
 
-func (hbp *HerokuBuildPhase) CanPreload() bool {
-	return false
+type HerokuBuildPhaseContext struct {
+	TarballUrl string
 }
 
-func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment) error {
-	build, err := hbp.createBuild(deployment)
+func (hbp *HerokuBuildPhase) CanPreload() bool {
+	return true
+}
+
+func (hbp *HerokuBuildPhase) Preload(deployment common.Deployment) (interface{}, error) {
+	githubRepo := common.NewGithubRepositoryFromDeployment(deployment)
+	tarballUrl, err := githubRepo.GetArchiveLink(common.Tarball)
+	if err != nil {
+		return nil, err
+	}
+
+	return &HerokuBuildPhaseContext{
+		TarballUrl: tarballUrl,
+	}, nil
+}
+
+func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment, data interface{}) error {
+	context := data.(*HerokuBuildPhaseContext)
+
+	build, err := hbp.createBuild(deployment, context)
 	if err != nil {
 		return err
 	}
@@ -37,21 +55,16 @@ func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment) error {
 	return nil
 }
 
-func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment) (*heroku.Build, error) {
-	githubRepo := common.NewGithubRepositoryFromDeployment(deployment)
-	tarballUrl, err := githubRepo.GetArchiveLink(common.Tarball)
-	if err != nil {
-		return nil, err
-	}
-
+func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment, context *HerokuBuildPhaseContext) (*heroku.Build, error) {
 	build, resp, err := hbp.Client.BuildCreate(hbp.AppId, &heroku.SourceBlob{
-		Url:     tarballUrl,
+		Url:     context.TarballUrl,
 		Version: deployment.Ref(),
 	})
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusCreated {
+		fmt.Printf("Received error from Heroku when creating build: %v\n", resp)
 		return nil, fmt.Errorf("Non-creation status code (expected %v, got %v)", http.StatusCreated, resp.StatusCode)
 	}
 

@@ -16,7 +16,7 @@ func (snp *SlackNotifierPhase) CanPreload() bool {
 	return false
 }
 
-func (snp *SlackNotifierPhase) Execute(deployment common.Deployment) error {
+func (snp *SlackNotifierPhase) Execute(deployment common.Deployment, _ interface{}) error {
 	message, err := snp.Format(deployment)
 	if err != nil {
 		return err
