@@ -16,7 +16,7 @@ type Build struct {
 type SourceBlob struct {
 	Checksum string `json:"checksum,omitempty"`
 	Url      string `json:"url"`
-	Version  string `json:"url"`
+	Version  string `json:"version"`
 }
 
 type buildCreateRequest struct {
@@ -24,6 +24,7 @@ type buildCreateRequest struct {
 }
 
 func (c *Client) BuildCreate(appId string, sourceBlob *SourceBlob) (*Build, *http.Response, error) {
+	fmt.Printf("sourceBlob: %+v\n", sourceBlob)
 	body, err := json.Marshal(&buildCreateRequest{
 		SourceBlob: sourceBlob,
 	})
