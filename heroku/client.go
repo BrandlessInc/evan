@@ -13,6 +13,7 @@ const (
 
 type Client struct {
 	Token      string
+	Debug      bool
 	httpClient *http.Client
 }
 
