@@ -23,6 +23,7 @@ func (c *Client) BuildCreate(appId string, sourceBlob *SourceBlob) (*Build, *htt
 	body, err := json.Marshal(map[string]interface{}{
 		"source_blob": sourceBlob,
 	})
+	fmt.Printf("BuildCreate body: %v\n", string(body))
 	if err != nil {
 		return nil, nil, err
 	}
