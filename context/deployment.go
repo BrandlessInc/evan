@@ -80,18 +80,25 @@ func (deployment *Deployment) Flags() map[string]interface{} {
 	return deployment.flags
 }
 
+func (deployment *Deployment) HasFlag(key string) bool {
+	_, present := deployment.flags[key]
+	return present
+}
+
+func (deployment *Deployment) Flag(key string) interface{} {
+	return deployment.flags[key]
+}
+
+func (deployment *Deployment) SetFlag(key string, value interface{}) {
+	deployment.flags[key] = value
+}
+
 // Looks for the "force" boolean in the `flags`.
 func (deployment *Deployment) IsForce() bool {
-	forceUntyped, present := deployment.flags["force"]
-	if !present {
-		return false
-	}
-
-	force, ok := forceUntyped.(bool)
-	if !ok || !force {
-		return false
+	if force, ok := deployment.Flag("force").(bool); ok {
+		return force
 	} else {
-		return true
+		return false
 	}
 }
 

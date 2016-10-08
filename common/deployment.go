@@ -44,6 +44,9 @@ type Deployment interface {
 	GithubClient() *github.Client
 	SetGithubClient(*github.Client)
 	Flags() map[string]interface{}
+	HasFlag(string) bool
+	Flag(string) interface{}
+	SetFlag(string, interface{})
 	IsForce() bool
 
 	Status() DeploymentStatus
