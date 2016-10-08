@@ -40,6 +40,7 @@ func (c *Client) MakeRequest(method, url string, body *[]byte) (*http.Response, 
 
 	req.Header.Set("Accept", HEADER_ACCEPT)
 	req.Header.Set("Content-Type", HEADER_CONTENT_TYPE)
+	req.Header.Set("Authorization", "Bearer " + c.Token)
 
 	return c.httpClient.Do(req)
 }
