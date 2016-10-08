@@ -19,9 +19,13 @@ type SourceBlob struct {
 	Version  string `json:"url"`
 }
 
+type buildCreateRequest struct {
+	SourceBlob *SourceBlob `json:"source_blob"`
+}
+
 func (c *Client) BuildCreate(appId string, sourceBlob *SourceBlob) (*Build, *http.Response, error) {
-	body, err := json.Marshal(map[string]interface{}{
-		"source_blob": sourceBlob,
+	body, err := json.Marshal(&buildCreateRequest{
+		SourceBlob: sourceBlob,
 	})
 	fmt.Printf("BuildCreate body: %v\n", string(body))
 	if err != nil {
@@ -66,7 +70,7 @@ func (c *Client) readResponse(resp *http.Response) ([]byte, error) {
 	}
 
 	if resp.StatusCode >= 400 && c.Debug {
-		fmt.Printf("[Heroku] Error: code=%v %v", resp.StatusCode, string(body))
+		fmt.Printf("[Heroku] Error: code=%v %v\n", resp.StatusCode, string(body))
 	}
 
 	return body, nil
