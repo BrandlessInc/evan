@@ -14,6 +14,23 @@ const (
 	DEPLOYMENT_ERROR
 )
 
+func (state DeploymentState) String() string {
+	switch state {
+	case DEPLOYMENT_PENDING:
+		return "DEPLOYMENT_PENDING"
+	case RUNNING_PRECONDITIONS:
+		return "RUNNING_PRECONDITIONS"
+	case RUNNING_PHASE:
+		return "RUNNING_PHASE"
+	case DEPLOYMENT_DONE:
+		return "DEPLOYMENT_DONE"
+	case DEPLOYMENT_ERROR:
+		return "DEPLOYMENT_ERROR"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type DeploymentStatus struct {
 	State DeploymentState
 	Phase Phase

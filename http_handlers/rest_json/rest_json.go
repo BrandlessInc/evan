@@ -94,3 +94,41 @@ func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val i
 
 	return json.Unmarshal(body, val)
 }
+
+type DeploymentsStatusHandler struct {
+	Applications *config.Applications
+}
+
+func (handler *DeploymentsStatusHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	store := handler.Applications.Store
+	applicationsStatuses := make(map[string]map[string]string)
+
+	for _, app := range handler.Applications.List {
+		environmentsStatuses := make(map[string]string)
+
+		for _, env := range app.Environments {
+			deployment, _ := store.FindDeployment(app.Wrapper(), env)
+
+			var status string
+			if deployment != nil {
+				status = deployment.Status().State.String()
+			} else {
+				status = "UNKNOWN"
+			}
+
+			environmentsStatuses[env] = status
+		}
+
+		applicationsStatuses[app.Name] = environmentsStatuses
+	}
+
+	body, err := json.Marshal(map[string]interface{}{
+		"applications": applicationsStatuses,
+	})
+	if err != nil {
+		respondWithError(res, err, http.StatusInternalServerError)
+		return
+	}
+
+	respondWith(res, body, http.StatusOK)
+}
