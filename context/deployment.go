@@ -25,7 +25,7 @@ type Deployment struct {
 	lastError    error
 }
 
-func NewDeployment(app common.Application, environment string, ref string) (*Deployment, error) {
+func NewDeployment(app common.Application, environment string, ref string, flags map[string]interface{}) (*Deployment, error) {
 	strategy := app.StrategyForEnvironment(environment)
 	if strategy == nil {
 		return nil, fmt.Errorf("Deployment strategy not found for environment: '%v'", environment)
@@ -36,6 +36,7 @@ func NewDeployment(app common.Application, environment string, ref string) (*Dep
 		environment:  environment,
 		strategy:     strategy,
 		ref:          ref,
+		flags:        flags,
 		currentState: common.DEPLOYMENT_PENDING,
 	}, nil
 }

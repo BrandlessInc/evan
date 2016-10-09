@@ -12,17 +12,18 @@ import (
 )
 
 type CreateDeploymentRequest struct {
-	Application string `json:"application"`
-	Environment string `json:"environment"`
-	Ref         string `json:"ref"`
+	Application string                 `json:"application"`
+	Environment string                 `json:"environment"`
+	Ref         string                 `json:"ref"`
+	Flags       map[string]interface{} `json:"flags"`
 }
 
 func (cdr *CreateDeploymentRequest) newDeployment(app *config.Application) (*context.Deployment, error) {
-	return context.NewDeployment(app.Wrapper(), cdr.Environment, cdr.Ref)
+	return context.NewDeployment(app.Wrapper(), cdr.Environment, cdr.Ref, cdr.Flags)
 }
 
 type CreateDeploymentHandler struct {
-	Applications *config.Applications
+	Applications  *config.Applications
 	PreDeployment func(*http.Request, common.Deployment) error
 }
 
