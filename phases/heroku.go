@@ -9,12 +9,16 @@ import (
 	"github.com/Everlane/evan/heroku"
 )
 
+const TOKEN_FLAG string = "heroku.token"
+
 type HerokuBuildPhase struct {
-	Client *heroku.Client
-	AppId  string
+	// Will use this client if no client is passed through build flags.
+	DefaultClient *heroku.Client
+	AppId         string
 }
 
 type HerokuBuildPhaseContext struct {
+	Client     *heroku.Client
 	TarballUrl string
 }
 
@@ -23,6 +27,15 @@ func (hbp *HerokuBuildPhase) CanPreload() bool {
 }
 
 func (hbp *HerokuBuildPhase) Preload(deployment common.Deployment) (interface{}, error) {
+	client := hbp.DefaultClient
+	if deployment.HasFlag(TOKEN_FLAG) {
+		token := deployment.Flag(TOKEN_FLAG).(string)
+		client = heroku.NewClient(token)
+	}
+	if client == nil {
+		return nil, fmt.Errorf("No Heroku Platform API client found")
+	}
+
 	githubRepo := common.NewGithubRepositoryFromDeployment(deployment)
 	tarballUrl, err := githubRepo.GetArchiveLink(common.Tarball)
 	if err != nil {
@@ -31,6 +44,7 @@ func (hbp *HerokuBuildPhase) Preload(deployment common.Deployment) (interface{},
 
 	return &HerokuBuildPhaseContext{
 		TarballUrl: tarballUrl,
+		Client:     client,
 	}, nil
 }
 
@@ -42,7 +56,7 @@ func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment, data interfac
 		return err
 	}
 
-	build, err = hbp.PollBuildStatus(build)
+	build, err = hbp.PollBuildStatus(build, context)
 	if err != nil {
 		return err
 	}
@@ -56,7 +70,7 @@ func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment, data interfac
 }
 
 func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment, context *HerokuBuildPhaseContext) (*heroku.Build, error) {
-	build, resp, err := hbp.Client.BuildCreate(hbp.AppId, &heroku.SourceBlob{
+	build, resp, err := context.Client.BuildCreate(hbp.AppId, &heroku.SourceBlob{
 		Url:     context.TarballUrl,
 		Version: deployment.Ref(),
 	})
@@ -71,9 +85,9 @@ func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment, context *
 	return build, nil
 }
 
-func (hbp *HerokuBuildPhase) PollBuildStatus(sourceBuild *heroku.Build) (*heroku.Build, error) {
+func (hbp *HerokuBuildPhase) PollBuildStatus(sourceBuild *heroku.Build, context *HerokuBuildPhaseContext) (*heroku.Build, error) {
 	for true {
-		build, _, err := hbp.Client.BuildInfo(hbp.AppId, sourceBuild.Id)
+		build, _, err := context.Client.BuildInfo(hbp.AppId, sourceBuild.Id)
 		if err != nil {
 			return nil, err
 		}
