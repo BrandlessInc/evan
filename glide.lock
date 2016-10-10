@@ -1,5 +1,5 @@
-hash: c0ceadec260b5db6bf22ff408aae6d82de56fd75c49d579d80306b6fdad9614c
-updated: 2016-10-05T16:38:51.082962057-07:00
+hash: fe8ffacaa234ccd73227ffbc69d8cf4df3ee5996d91ba42d3b4c744889482aa0
+updated: 2016-10-10T16:34:08.681678231-07:00
 imports:
 - name: github.com/google/go-github
   version: 3e246d29992beb5a5d2fc253adebea86997c45b0
@@ -11,6 +11,8 @@ imports:
   - query
 - name: github.com/nlopes/slack
   version: a1a63712460a18dbe828ae915f954a0f214f3d8e
+- name: github.com/satori/go.uuid
+  version: b061729afc07e77a8aa4fad0a2fd840958f1942a
 - name: golang.org/x/net
   version: ffe101cce3477a6c6d8f0754d103bb0a84ec1266
   subpackages:

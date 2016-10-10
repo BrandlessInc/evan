@@ -6,3 +6,5 @@ import:
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
 - package: github.com/nlopes/slack
   version: a1a63712460a18dbe828ae915f954a0f214f3d8e
+- package: github.com/satori/go.uuid
+  version: b061729afc07e77a8aa4fad0a2fd840958f1942a

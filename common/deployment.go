@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/google/go-github/github"
+	"github.com/satori/go.uuid"
 )
 
 type DeploymentState int
@@ -38,6 +39,7 @@ type DeploymentStatus struct {
 }
 
 type Deployment interface {
+	UUID() uuid.UUID
 	Application() Application
 	Environment() string
 	Ref() string

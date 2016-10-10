@@ -6,10 +6,12 @@ import (
 	"github.com/Everlane/evan/common"
 
 	"github.com/google/go-github/github"
+	"github.com/satori/go.uuid"
 )
 
 // Stores state relating to a deployment.
 type Deployment struct {
+	uuid        uuid.UUID
 	application common.Application
 	environment string
 	strategy    common.Strategy
@@ -32,6 +34,7 @@ func NewDeployment(app common.Application, environment string, ref string, flags
 	}
 
 	return &Deployment{
+		uuid:         uuid.NewV1(),
 		application:  app,
 		environment:  environment,
 		strategy:     strategy,
@@ -39,6 +42,10 @@ func NewDeployment(app common.Application, environment string, ref string, flags
 		flags:        flags,
 		currentState: common.DEPLOYMENT_PENDING,
 	}, nil
+}
+
+func (deployment *Deployment) UUID() uuid.UUID {
+	return deployment.uuid
 }
 
 func (deployment *Deployment) Application() common.Application {
