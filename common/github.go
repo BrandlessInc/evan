@@ -52,18 +52,22 @@ const (
 )
 
 // `format` should be one of "tarball" or "zipball".
-func (repo *GithubRepository) GetArchiveLink(format ArchiveFormat) (string, error) {
+func (repo *GithubRepository) GetArchiveLink(format ArchiveFormat, ref string) (string, error) {
 	owner, name := repo.OwnerAndName()
 
 	var url *url.URL
 	var err error
 
+	options := &github.RepositoryContentGetOptions{
+		Ref: ref,
+	}
+
 	// Work-around for `go-github` not exporting their `archiveFormat` type.
 	switch format {
 	case Tarball:
-		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Tarball, nil)
+		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Tarball, options)
 	case Zipball:
-		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Zipball, nil)
+		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Zipball, options)
 	default:
 		return "", fmt.Errorf("Unknown archive format: '%v'", format)
 	}
@@ -73,4 +77,10 @@ func (repo *GithubRepository) GetArchiveLink(format ArchiveFormat) (string, erro
 	} else {
 		return url.String(), nil
 	}
+}
+
+func (repo *GithubRepository) GetCommitSHA1(ref string) (string, error) {
+	owner, name := repo.OwnerAndName()
+	sha1, _, err := repo.GithubClient.Repositories.GetCommitSHA1(owner, name, ref, "")
+	return sha1, err
 }

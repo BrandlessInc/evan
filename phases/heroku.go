@@ -18,8 +18,9 @@ type HerokuBuildPhase struct {
 }
 
 type HerokuBuildPhaseContext struct {
-	Client     *heroku.Client
-	TarballUrl string
+	herokuClient *heroku.Client
+	sha1         string
+	tarballUrl   string
 }
 
 func (hbp *HerokuBuildPhase) CanPreload() bool {
@@ -27,24 +28,31 @@ func (hbp *HerokuBuildPhase) CanPreload() bool {
 }
 
 func (hbp *HerokuBuildPhase) Preload(deployment common.Deployment) (interface{}, error) {
-	client := hbp.DefaultClient
+	herokuClient := hbp.DefaultClient
 	if deployment.HasFlag(TOKEN_FLAG) {
 		token := deployment.Flag(TOKEN_FLAG).(string)
-		client = heroku.NewClient(token)
+		herokuClient = heroku.NewClient(token)
 	}
-	if client == nil {
+	if herokuClient == nil {
 		return nil, fmt.Errorf("No Heroku Platform API client found")
 	}
 
 	githubRepo := common.NewGithubRepositoryFromDeployment(deployment)
-	tarballUrl, err := githubRepo.GetArchiveLink(common.Tarball)
+
+	sha1, err := githubRepo.GetCommitSHA1(deployment.Ref())
+	if err != nil {
+		return nil, err
+	}
+
+	tarballUrl, err := githubRepo.GetArchiveLink(common.Tarball, deployment.Ref())
 	if err != nil {
 		return nil, err
 	}
 
 	return &HerokuBuildPhaseContext{
-		TarballUrl: tarballUrl,
-		Client:     client,
+		herokuClient: herokuClient,
+		sha1:         sha1,
+		tarballUrl:   tarballUrl,
 	}, nil
 }
 
@@ -70,9 +78,9 @@ func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment, data interfac
 }
 
 func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment, context *HerokuBuildPhaseContext) (*heroku.Build, error) {
-	build, resp, err := context.Client.BuildCreate(hbp.AppId, &heroku.SourceBlob{
-		Url:     context.TarballUrl,
-		Version: deployment.Ref(),
+	build, resp, err := context.herokuClient.BuildCreate(hbp.AppId, &heroku.SourceBlob{
+		Url:     context.tarballUrl,
+		Version: context.sha1,
 	})
 	if err != nil {
 		return nil, err
@@ -87,7 +95,7 @@ func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment, context *
 
 func (hbp *HerokuBuildPhase) PollBuildStatus(sourceBuild *heroku.Build, context *HerokuBuildPhaseContext) (*heroku.Build, error) {
 	for true {
-		build, _, err := context.Client.BuildInfo(hbp.AppId, sourceBuild.Id)
+		build, _, err := context.herokuClient.BuildInfo(hbp.AppId, sourceBuild.Id)
 		if err != nil {
 			return nil, err
 		}
