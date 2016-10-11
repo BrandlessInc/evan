@@ -69,6 +69,17 @@ func (wrapper *CommonApplicationWrapper) Repository() common.Repository {
 }
 
 func (wrapper *CommonApplicationWrapper) StrategyForEnvironment(environment string) common.Strategy {
+	environmentFound := false
+	for _, configuredEnvironment := range wrapper.app.Environments {
+		if environment == configuredEnvironment {
+			environmentFound = true
+			break
+		}
+	}
+	if !environmentFound {
+		return nil
+	}
+
 	strategy := wrapper.app.DeployEnvironment(environment)
 	if strategy == nil {
 		return nil
