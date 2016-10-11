@@ -16,6 +16,7 @@ type Deployment struct {
 	environment string
 	strategy    common.Strategy
 	ref         string
+	sha1        string
 	flags       map[string]interface{}
 
 	githubClient *github.Client
@@ -58,6 +59,14 @@ func (deployment *Deployment) Environment() string {
 
 func (deployment *Deployment) Ref() string {
 	return deployment.ref
+}
+
+func (deployment *Deployment) SHA1() string {
+	return deployment.sha1
+}
+
+func (deployment *Deployment) SetSHA1(sha1 string) {
+	deployment.sha1 = sha1
 }
 
 func (deployment *Deployment) GithubClient() *github.Client {

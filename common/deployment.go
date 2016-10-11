@@ -43,6 +43,8 @@ type Deployment interface {
 	Application() Application
 	Environment() string
 	Ref() string
+	SHA1() string
+	SetSHA1(string)
 	GithubClient() *github.Client
 	SetGithubClient(*github.Client)
 	Flags() map[string]interface{}
