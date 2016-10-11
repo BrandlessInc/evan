@@ -43,6 +43,21 @@ func (store *ProcessLocalStore) FindDeployment(app common.Application, environme
 	return store.applications[application][environment], nil
 }
 
+func (store *ProcessLocalStore) HasActiveDeployment(app common.Application, environment string) (bool, error) {
+	deployment, err := store.FindDeployment(app, environment)
+	if err != nil {
+		return false, err
+	}
+
+	switch deployment.Status().State {
+	case common.DEPLOYMENT_PENDING:
+	case common.RUNNING_PRECONDITIONS:
+	case common.RUNNING_PHASE:
+		return true, nil
+	}
+	return false, nil
+}
+
 func (store *ProcessLocalStore) keyForApplication(application common.Application) string {
 	return common.CanonicalNameForRepository(application.Repository())
 }

@@ -42,6 +42,15 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
+	hasActiveDeployment, err := handler.Applications.Store.HasActiveDeployment(app.Wrapper(), deploymentRequest.Environment)
+	if err != nil {
+		respondWithError(res, err, http.StatusInternalServerError)
+		return
+	}
+	if hasActiveDeployment {
+		respondWithError(res, fmt.Errorf("Deployment in progress"), http.StatusLocked)
+	}
+
 	deployment, err := deploymentRequest.newDeployment(app)
 	if err != nil {
 		respondWithError(res, err, http.StatusNotFound)
