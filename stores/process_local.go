@@ -48,6 +48,9 @@ func (store *ProcessLocalStore) HasActiveDeployment(app common.Application, envi
 	if err != nil {
 		return false, err
 	}
+	if deployment == nil {
+		return false, nil
+	}
 
 	switch deployment.Status().State {
 	case common.DEPLOYMENT_PENDING:
