@@ -49,6 +49,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 	}
 	if hasActiveDeployment {
 		respondWithError(res, fmt.Errorf("Deployment in progress"), http.StatusLocked)
+		return
 	}
 
 	deployment, err := deploymentRequest.newDeployment(app)
