@@ -5,7 +5,6 @@ import (
 
 	"github.com/Everlane/evan/common"
 
-	"github.com/google/go-github/github"
 	"github.com/satori/go.uuid"
 )
 
@@ -19,7 +18,6 @@ type Deployment struct {
 	sha1        string
 	flags       map[string]interface{}
 
-	githubClient *github.Client
 	store        common.Store
 
 	// Internal state
@@ -67,14 +65,6 @@ func (deployment *Deployment) SHA1() string {
 
 func (deployment *Deployment) SetSHA1(sha1 string) {
 	deployment.sha1 = sha1
-}
-
-func (deployment *Deployment) GithubClient() *github.Client {
-	return deployment.githubClient
-}
-
-func (deployment *Deployment) SetGithubClient(githubClient *github.Client) {
-	deployment.githubClient = githubClient
 }
 
 func (deployment *Deployment) SetStoreAndSave(store common.Store) error {

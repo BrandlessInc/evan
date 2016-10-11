@@ -1,7 +1,6 @@
 package common
 
 import (
-	"github.com/google/go-github/github"
 	"github.com/satori/go.uuid"
 )
 
@@ -45,8 +44,6 @@ type Deployment interface {
 	Ref() string
 	SHA1() string
 	SetSHA1(string)
-	GithubClient() *github.Client
-	SetGithubClient(*github.Client)
 	Flags() map[string]interface{}
 	HasFlag(string) bool
 	Flag(string) interface{}

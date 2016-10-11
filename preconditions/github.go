@@ -11,7 +11,7 @@ type GithubCombinedStatusPrecondition struct{}
 func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
 	repo := deployment.Application().Repository()
 	ref := deployment.Ref()
-	client := deployment.GithubClient()
+	client := common.GithubClient(deployment)
 
 	status, _, err := client.Repositories.GetCombinedStatus(repo.Owner(), repo.Name(), ref, nil)
 	if err != nil {
@@ -43,7 +43,7 @@ func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment common.Deploymen
 	repo := deployment.Application().Repository()
 	githubRepo := &common.GithubRepository{
 		Repository:   repo,
-		GithubClient: deployment.GithubClient(),
+		GithubClient: common.GithubClient(deployment),
 	}
 
 	repoDetails, err := githubRepo.Get()

@@ -5,7 +5,42 @@ import (
 	"net/url"
 
 	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
+
+const ACCESS_TOKEN_FLAG string = "github.access_token"
+
+var DefaultGithubClient *github.Client = nil
+
+// Memoized map of GitHub clients by their access token
+var githubClients map[string]*github.Client
+
+func GithubClient(deployment Deployment) *github.Client {
+	if deployment.HasFlag(ACCESS_TOKEN_FLAG) {
+		accessToken := deployment.Flag(ACCESS_TOKEN_FLAG).(string)
+		if githubClients == nil {
+			githubClients = make(map[string]*github.Client)
+		}
+		if githubClients[accessToken] == nil {
+			githubClient := NewGithubClientWithAccessToken(accessToken)
+			githubClients[accessToken] = githubClient
+		}
+		return githubClients[accessToken]
+	}
+
+	if DefaultGithubClient != nil {
+		return DefaultGithubClient
+	}
+
+	panic(fmt.Sprintf("No GitHub client configured nor was an access token found in '%v' flag", ACCESS_TOKEN_FLAG))
+}
+
+func NewGithubClientWithAccessToken(accessToken string) *github.Client {
+	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
+	tokenClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
+
+	return github.NewClient(tokenClient)
+}
 
 type GithubRepository struct {
 	Repository   Repository
@@ -19,10 +54,8 @@ func NewGithubRepository(repository Repository, githubClient *github.Client) *Gi
 	}
 }
 
-func NewGithubRepositoryFromDeployment(deployment Deployment) *GithubRepository {
+func NewGithubRepositoryFromDeployment(deployment Deployment, githubClient *github.Client) *GithubRepository {
 	repository := deployment.Application().Repository()
-	githubClient := deployment.GithubClient()
-
 	return NewGithubRepository(repository, githubClient)
 }
 
