@@ -1,5 +1,5 @@
-hash: fe8ffacaa234ccd73227ffbc69d8cf4df3ee5996d91ba42d3b4c744889482aa0
-updated: 2016-10-10T16:34:08.681678231-07:00
+hash: b7df1560565b6502114bae52eb985b1128c971ffedd5edb490cd466d5262e3d5
+updated: 2016-10-11T11:37:30.852770137-07:00
 imports:
 - name: github.com/google/go-github
   version: 3e246d29992beb5a5d2fc253adebea86997c45b0
@@ -17,4 +17,6 @@ imports:
   version: ffe101cce3477a6c6d8f0754d103bb0a84ec1266
   subpackages:
   - websocket
+- name: golang.org/x/oauth2
+  version: 3c3a985cb79f52a3190fbc056984415ca6763d01
 testImports: []

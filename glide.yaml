@@ -8,3 +8,5 @@ import:
   version: a1a63712460a18dbe828ae915f954a0f214f3d8e
 - package: github.com/satori/go.uuid
   version: b061729afc07e77a8aa4fad0a2fd840958f1942a
+- package: golang.org/x/oauth2
+  version: 3c3a985cb79f52a3190fbc056984415ca6763d01
