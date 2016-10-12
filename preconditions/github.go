@@ -12,7 +12,10 @@ type GithubCombinedStatusPrecondition struct{}
 
 func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
 	repo := deployment.Application().Repository()
-	ref := deployment.Ref()
+	ref := deployment.SHA1()
+	if ref == "" {
+		ref = deployment.Ref()
+	}
 
 	client, err := common.GithubClient(deployment)
 	if err != nil {
@@ -20,6 +23,7 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment)
 	}
 
 	status, _, err := client.Repositories.GetCombinedStatus(repo.Owner(), repo.Name(), ref, nil)
+	fmt.Printf("status: %+v\n", status)
 	if err != nil {
 		return createResult(gh, err)
 	}
