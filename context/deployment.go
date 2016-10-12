@@ -67,6 +67,14 @@ func (deployment *Deployment) SetSHA1(sha1 string) {
 	deployment.sha1 = sha1
 }
 
+func (deployment *Deployment) MostPreciseRef() string {
+	if deployment.sha1 != "" {
+		return deployment.sha1
+	} else {
+		return deployment.ref
+	}
+}
+
 func (deployment *Deployment) SetStoreAndSave(store common.Store) error {
 	deployment.store = store
 	return store.SaveDeployment(deployment)

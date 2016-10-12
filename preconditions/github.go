@@ -34,10 +34,7 @@ type GithubCombinedStatusPrecondition struct {
 
 func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) error {
 	repo := deployment.Application().Repository()
-	ref := deployment.SHA1()
-	if ref == "" {
-		ref = deployment.Ref()
-	}
+	ref := deployment.MostPreciseRef()
 
 	client, err := common.GithubClient(deployment)
 	if err != nil {

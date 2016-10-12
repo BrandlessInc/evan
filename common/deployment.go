@@ -44,6 +44,8 @@ type Deployment interface {
 	Ref() string
 	SHA1() string
 	SetSHA1(string)
+	// Return the SHA1 if known, otherwise the ref
+	MostPreciseRef() string
 	Flags() map[string]interface{}
 	HasFlag(string) bool
 	Flag(string) interface{}
