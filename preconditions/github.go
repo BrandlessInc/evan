@@ -8,7 +8,11 @@ import (
 	"github.com/google/go-github/github"
 )
 
-type GithubCombinedStatusPrecondition struct{}
+type GithubCombinedStatusPrecondition struct {
+	// If true then it will ignore the reported status if GitHub reports that
+	// there are no status checks.
+	AllowEmpty bool
+}
 
 func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
 	repo := deployment.Application().Repository()
@@ -27,14 +31,13 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment)
 		return createResult(gh, err)
 	}
 
-	state := *status.State
-	totalCount := *status.TotalCount
+	// Skip if there are no status checks and that's allowed
+	if *status.TotalCount == 0 && gh.AllowEmpty {
+		return createResult(gh, nil)
+	}
 
 	var result error = nil
-	// GitHub will report a "pending" status if there are zero status checks,
-	// therefore we want to only check the status if there are one or more
-	// status checks.
-	if totalCount > 0 && state != "success" {
+	if *status.State != "success" {
 		result = fmt.Errorf("Non-success status for ref: %v", *status.State)
 	}
 	return createResult(gh, result)
