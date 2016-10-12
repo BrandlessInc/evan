@@ -14,7 +14,7 @@ type GithubCombinedStatusPrecondition struct {
 	AllowEmpty bool
 }
 
-func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
+func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) error {
 	repo := deployment.Application().Repository()
 	ref := deployment.SHA1()
 	if ref == "" {
@@ -23,24 +23,23 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment)
 
 	client, err := common.GithubClient(deployment)
 	if err != nil {
-		return createResult(gh, err)
+		return err
 	}
 
 	status, _, err := client.Repositories.GetCombinedStatus(repo.Owner(), repo.Name(), ref, nil)
 	if err != nil {
-		return createResult(gh, err)
+		return err
 	}
 
 	// Skip if there are no status checks and that's allowed
 	if *status.TotalCount == 0 && gh.AllowEmpty {
-		return createResult(gh, nil)
+		return nil
 	}
 
-	var result error = nil
 	if *status.State != "success" {
-		result = fmt.Errorf("Non-success status for ref: %v", *status.State)
+		return fmt.Errorf("Non-success status for ref: %v", *status.State)
 	}
-	return createResult(gh, result)
+	return nil
 }
 
 // Require that the branch for deployment not be behind the default branch
@@ -51,7 +50,7 @@ type GithubRequireAheadPrecondition struct {
 }
 
 type GithubRequireAheadContext struct {
-	RepoClient *common.GithubRepository
+	RepoClient  *common.GithubRepository
 	RepoDetails *github.Repository
 }
 
@@ -88,10 +87,10 @@ func (gh *GithubRequireAheadPrecondition) Merge(deployment common.Deployment, ct
 	}
 }
 
-func (gh *GithubRequireAheadPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
+func (gh *GithubRequireAheadPrecondition) Status(deployment common.Deployment) error {
 	githubClient, err := common.GithubClient(deployment)
 	if err != nil {
-		return createResult(gh, err)
+		return err
 	}
 
 	repoClient := &common.GithubRepository{
@@ -100,34 +99,34 @@ func (gh *GithubRequireAheadPrecondition) Status(deployment common.Deployment) c
 	}
 	repoDetails, err := repoClient.Get()
 	if err != nil {
-		return createResult(gh, err)
+		return err
 	}
 
 	ctx := &GithubRequireAheadContext{
-		RepoClient: repoClient,
+		RepoClient:  repoClient,
 		RepoDetails: repoDetails,
 	}
 
 	needsMerge, err := gh.NeedsMerge(deployment, ctx)
 	if err != nil {
-		return createResult(gh, err)
+		return err
 	}
 
 	// Halt if we don't need to merge!
 	if !needsMerge {
-		return createResult(gh, nil)
+		return nil
 	}
 
 	if !gh.AutoMerge {
-		return createResult(gh, fmt.Errorf("Merge needed for ref '%v'", deployment.Ref()))
+		return fmt.Errorf("Merge needed for ref '%v'", deployment.Ref())
 	}
 
 	sha1, err := gh.Merge(deployment, ctx)
 	if err != nil {
-		return createResult(gh, err)
+		return err
 	}
 	// Update the SHA1 to point to the new merge commit
 	deployment.SetSHA1(sha1)
 
-	return createResult(gh, nil)
+	return nil
 }

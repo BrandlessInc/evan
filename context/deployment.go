@@ -126,18 +126,10 @@ func (deployment *Deployment) CheckPreconditions() error {
 	deployment.setStateAndSave(common.RUNNING_PRECONDITIONS)
 
 	preconditions := deployment.strategy.Preconditions()
-
-	resultChan := make(chan common.PreconditionResult)
 	for _, precondition := range preconditions {
-		go func() {
-			resultChan <- precondition.Status(deployment)
-		}()
-	}
-
-	for _ = range preconditions {
-		result := <-resultChan
-		if result.Error != nil {
-			return result.Error
+		err := precondition.Status(deployment)
+		if err != nil {
+			return err
 		}
 	}
 
