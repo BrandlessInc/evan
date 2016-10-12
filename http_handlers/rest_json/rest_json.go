@@ -93,8 +93,26 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		}
 	}()
 
-	message := fmt.Sprintf("Deploying %v", humanDescription)
-	respondWithOk(res, message)
+	body, err := json.Marshal(map[string]interface{}{
+		"message": fmt.Sprintf("Deploying %v", humanDescription),
+		"deployment": DeploymentAsJSON(deployment),
+	})
+	if err != nil {
+		panic(err)
+	}
+	respondWith(res, body, http.StatusCreated)
+}
+
+func DeploymentAsJSON(deployment common.Deployment) map[string]interface{} {
+	return map[string]interface{}{
+		"uuid": deployment.UUID(),
+		"application": map[string]interface{}{
+			"name": deployment.Application().Name(),
+		},
+		"environment": deployment.Environment(),
+		"ref": deployment.Ref(),
+		"sha1": deployment.SHA1(),
+	}
 }
 
 func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val interface{}) error {
