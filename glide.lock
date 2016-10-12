@@ -1,5 +1,5 @@
-hash: 45ffd34594324659bfaa2ac3d18b992d95927c31c80539d02991cce5f3c48e13
-updated: 2016-10-12T10:11:47.339241731-07:00
+hash: ce9f0bb588e9dc8676fa8069ca30ec37348995be61cd48d52fabdfb3dad5b439
+updated: 2016-10-12T14:04:18.836975-07:00
 imports:
 - name: github.com/golang/protobuf
   version: df1d3ca07d2d07bba352d5b73c4313b4e2a6203e
@@ -13,17 +13,12 @@ imports:
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
   subpackages:
   - query
-- name: github.com/moul/http2curl
-  version: b1479103caacaa39319f75e7f57fc545287fca0d
-- name: github.com/parnurzeal/gorequest
-  version: 2aea80ce763523ecc6452e61c3727ae9595a5809
 - name: github.com/satori/go.uuid
   version: b061729afc07e77a8aa4fad0a2fd840958f1942a
 - name: golang.org/x/net
   version: ffe101cce3477a6c6d8f0754d103bb0a84ec1266
   subpackages:
   - context
-  - publicsuffix
 - name: golang.org/x/oauth2
   version: 3c3a985cb79f52a3190fbc056984415ca6763d01
   subpackages:

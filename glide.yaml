@@ -8,5 +8,3 @@ import:
   version: b061729afc07e77a8aa4fad0a2fd840958f1942a
 - package: golang.org/x/oauth2
   version: 3c3a985cb79f52a3190fbc056984415ca6763d01
-- package: github.com/parnurzeal/gorequest
-  version: v0.2.14

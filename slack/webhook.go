@@ -2,37 +2,23 @@ package slack
 
 // Adapted from:
 //   https://github.com/ashwanthkumar/slack-go-webhook
+//   https://github.com/huguesalary/slack-go/blob/master/slack.go
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-
-	"github.com/parnurzeal/gorequest"
+	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
-type Field struct {
-	Title string `json:"title"`
-	Value string `json:"value"`
-	Short bool   `json:"short"`
-}
-
 type Attachment struct {
-	Fallback   *string  `json:"fallback"`
-	Color      *string  `json:"color"`
-	PreText    *string  `json:"pretext"`
-	AuthorName *string  `json:"author_name"`
-	AuthorLink *string  `json:"author_link"`
-	AuthorIcon *string  `json:"author_icon"`
-	Title      *string  `json:"title"`
-	TitleLink  *string  `json:"title_link"`
-	Text       *string  `json:"text"`
-	ImageUrl   *string  `json:"image_url"`
-	Fields     []*Field `json:"fields"`
-	Footer     *string  `json:"footer"`
-	FooterIcon *string  `json:"footer_icon"`
+	Color *string `json:"color"`
+	Text  *string `json:"text"`
 }
 
 type Payload struct {
-	Parse       string       `json:"parse,omitempty"`
 	Username    string       `json:"username,omitempty"`
 	IconUrl     string       `json:"icon_url,omitempty"`
 	IconEmoji   string       `json:"icon_emoji,omitempty"`
@@ -41,28 +27,38 @@ type Payload struct {
 	Attachments []Attachment `json:"attachments,omitempty"`
 }
 
-func (attachment *Attachment) AddField(field Field) *Attachment {
-	attachment.Fields = append(attachment.Fields, &field)
-	return attachment
+type WebhookError struct {
+	StatusCode int
+	Body       string
 }
 
-func redirectPolicyFunc(req gorequest.Request, via []gorequest.Request) error {
-	return fmt.Errorf("Incorrect token (redirection)")
+func (err *WebhookError) Error() string {
+	body := strings.TrimSpace(err.Body)
+	return fmt.Sprintf("WebhookError(%d): %s", err.StatusCode, body)
 }
 
 func Send(webhookUrl string, proxy string, payload Payload) error {
-	request := gorequest.New().Proxy(proxy)
-	res, _, errs := request.
-		Post(webhookUrl).
-		RedirectPolicy(redirectPolicyFunc).
-		Send(payload).
-		End()
-
-	if errs != nil {
-		return errs[0]
+	payloadBody, err := json.Marshal(payload)
+	if err != nil {
+		return err
 	}
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("Error sending message (status: %v)", res.Status)
+	buf := bytes.NewReader(payloadBody)
+
+	resp, err := http.Post(webhookUrl, "application/json", buf)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		} else {
+			return &WebhookError{
+				StatusCode: resp.StatusCode,
+				Body:       string(body),
+			}
+		}
 	}
 
 	return nil
