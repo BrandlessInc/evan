@@ -51,6 +51,7 @@ func (gh *GithubCombinedStatusPhase) Execute(deployment common.Deployment, data 
 		state := *status.State
 		switch state {
 		case "pending":
+			time.Sleep(10 * time.Second)
 			continue
 		case "success":
 			return nil
