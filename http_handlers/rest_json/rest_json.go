@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 
 	"github.com/Everlane/evan/common"
 	"github.com/Everlane/evan/config"
@@ -103,6 +104,21 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 	respondWith(res, body, http.StatusCreated)
 }
 
+func DeploymentStatusAsJSON(status common.DeploymentStatus) map[string]interface{} {
+	json := map[string]interface{}{
+		"state": status.State.String(),
+		"phase": nil,
+		"error": nil,
+	}
+	if status.Phase != nil {
+		json["phase"] = reflect.Indirect(reflect.ValueOf(status.Phase)).Type().Name()
+	}
+	if status.Error != nil {
+		json["error"] = status.Error.Error()
+	}
+	return json
+}
+
 func DeploymentAsJSON(deployment common.Deployment) map[string]interface{} {
 	return map[string]interface{}{
 		"uuid": deployment.UUID(),
@@ -110,6 +126,7 @@ func DeploymentAsJSON(deployment common.Deployment) map[string]interface{} {
 		"environment": deployment.Environment(),
 		"ref": deployment.Ref(),
 		"sha1": deployment.SHA1(),
+		"status": DeploymentStatusAsJSON(deployment.Status()),
 	}
 }
 
