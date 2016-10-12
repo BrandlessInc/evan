@@ -145,22 +145,19 @@ type DeploymentsStatusHandler struct {
 
 func (handler *DeploymentsStatusHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	store := handler.Applications.Store
-	applicationsStatuses := make(map[string]map[string]string)
+	applicationsStatuses := make(map[string]map[string]interface{})
 
 	for _, app := range handler.Applications.List {
-		environmentsStatuses := make(map[string]string)
+		environmentsStatuses := make(map[string]interface{})
 
 		for _, env := range app.Environments {
 			deployment, _ := store.FindDeployment(app.Wrapper(), env)
 
-			var status string
 			if deployment != nil {
-				status = deployment.Status().State.String()
+				environmentsStatuses[env] = DeploymentAsJSON(deployment)
 			} else {
-				status = "UNKNOWN"
+				environmentsStatuses[env] = nil
 			}
-
-			environmentsStatuses[env] = status
 		}
 
 		applicationsStatuses[app.Name] = environmentsStatuses
