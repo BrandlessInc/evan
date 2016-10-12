@@ -15,7 +15,7 @@ var DefaultGithubClient *github.Client = nil
 // Memoized map of GitHub clients by their access token
 var githubClients map[string]*github.Client
 
-func GithubClient(deployment Deployment) *github.Client {
+func GithubClient(deployment Deployment) (*github.Client, error) {
 	if deployment.HasFlag(ACCESS_TOKEN_FLAG) {
 		accessToken := deployment.Flag(ACCESS_TOKEN_FLAG).(string)
 		if githubClients == nil {
@@ -25,14 +25,14 @@ func GithubClient(deployment Deployment) *github.Client {
 			githubClient := NewGithubClientWithAccessToken(accessToken)
 			githubClients[accessToken] = githubClient
 		}
-		return githubClients[accessToken]
+		return githubClients[accessToken], nil
 	}
 
 	if DefaultGithubClient != nil {
-		return DefaultGithubClient
+		return DefaultGithubClient, nil
 	}
 
-	panic(fmt.Sprintf("No GitHub client configured nor was an access token found in '%v' flag", ACCESS_TOKEN_FLAG))
+	return nil, fmt.Errorf("No GitHub client configured nor was an access token found in '%v' flag", ACCESS_TOKEN_FLAG)
 }
 
 func NewGithubClientWithAccessToken(accessToken string) *github.Client {

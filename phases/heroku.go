@@ -37,7 +37,11 @@ func (hbp *HerokuBuildPhase) Preload(deployment common.Deployment) (interface{},
 		return nil, fmt.Errorf("No Heroku Platform API client found")
 	}
 
-	githubClient := common.GithubClient(deployment)
+	githubClient, err := common.GithubClient(deployment)
+	if err != nil {
+		return nil, err
+	}
+
 	githubRepo := common.NewGithubRepositoryFromDeployment(deployment, githubClient)
 
 	sha1, err := githubRepo.GetCommitSHA1(deployment.Ref())
