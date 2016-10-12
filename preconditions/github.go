@@ -23,13 +23,18 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment)
 	}
 
 	status, _, err := client.Repositories.GetCombinedStatus(repo.Owner(), repo.Name(), ref, nil)
-	fmt.Printf("status: %+v\n", status)
 	if err != nil {
 		return createResult(gh, err)
 	}
 
+	state := *status.State
+	totalCount := *status.TotalCount
+
 	var result error = nil
-	if *status.State != "success" {
+	// GitHub will report a "pending" status if there are zero status checks,
+	// therefore we want to only check the status if there are one or more
+	// status checks.
+	if totalCount > 0 && state != "success" {
 		result = fmt.Errorf("Non-success status for ref: %v", *status.State)
 	}
 	return createResult(gh, result)
