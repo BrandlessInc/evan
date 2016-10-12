@@ -167,6 +167,8 @@ func (deployment *Deployment) runPhases(preloadResults PreloadResults) error {
 func (deployment *Deployment) RunPhases() error {
 	results, err := deployment.RunPhasePreloads()
 	if err != nil {
+		deployment.lastError = err
+		deployment.setStateAndSave(common.DEPLOYMENT_ERROR)
 		return err
 	}
 
