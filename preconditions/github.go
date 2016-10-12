@@ -8,6 +8,24 @@ import (
 	"github.com/google/go-github/github"
 )
 
+// Fetches the SHA1 for the commit from GitHub.
+type GithubFetchCommitSHA1Precondition struct{}
+
+func (gh *GithubFetchCommitSHA1Precondition) Status(deployment common.Deployment) error {
+	githubRepo, err := common.NewGithubRepositoryFromDeployment(deployment)
+	if err != nil {
+		return err
+	}
+
+	sha1, err := githubRepo.GetCommitSHA1(deployment.Ref())
+	if err != nil {
+		return err
+	}
+	deployment.SetSHA1(sha1)
+
+	return nil
+}
+
 type GithubCombinedStatusPrecondition struct {
 	// If true then it will ignore the reported status if GitHub reports that
 	// there are no status checks.
