@@ -54,9 +54,14 @@ func NewGithubRepository(repository Repository, githubClient *github.Client) *Gi
 	}
 }
 
-func NewGithubRepositoryFromDeployment(deployment Deployment, githubClient *github.Client) *GithubRepository {
+func NewGithubRepositoryFromDeployment(deployment Deployment) (*GithubRepository, error) {
 	repository := deployment.Application().Repository()
-	return NewGithubRepository(repository, githubClient)
+	githubClient, err := GithubClient(deployment)
+	if err != nil {
+		return nil, err
+	} else {
+		return NewGithubRepository(repository, githubClient), nil
+	}
 }
 
 func (repo *GithubRepository) OwnerAndName() (string, string) {
