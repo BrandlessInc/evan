@@ -9,7 +9,7 @@ import (
 type SlackNotifierPhase struct {
 	Client  *slack.Client
 	Channel string
-	Format  func(common.Deployment) (string, error)
+	Format  func(common.Deployment) (*string, *slack.PostMessageParameters, error)
 }
 
 func (snp *SlackNotifierPhase) CanPreload() bool {
@@ -17,19 +17,23 @@ func (snp *SlackNotifierPhase) CanPreload() bool {
 }
 
 func (snp *SlackNotifierPhase) Execute(deployment common.Deployment, _ interface{}) error {
-	message, err := snp.Format(deployment)
+	message, params, err := snp.Format(deployment)
 	if err != nil {
 		return err
 	}
 
-	// If the `Format` function returned an empty strings that means we
-	// shouldn't send a message to Slack.
-	if message == "" {
+	// Don't send a message to Slack if the format function didn't return
+	// a message to send
+	if message == nil {
 		return nil
 	}
 
-	params := slack.NewPostMessageParameters()
-	_, _, err = snp.Client.PostMessage(snp.Channel, message, params)
+	if params == nil {
+		defaultParams := slack.NewPostMessageParameters()
+		params = &defaultParams
+	}
+
+	_, _, err = snp.Client.PostMessage(snp.Channel, *message, *params)
 	if err != nil {
 		return err
 	}
