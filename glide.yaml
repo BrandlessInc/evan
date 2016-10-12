@@ -4,9 +4,9 @@ import:
   version: 3e246d29992beb5a5d2fc253adebea86997c45b0
 - package: github.com/google/go-querystring
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
-- package: github.com/nlopes/slack
-  version: a1a63712460a18dbe828ae915f954a0f214f3d8e
 - package: github.com/satori/go.uuid
   version: b061729afc07e77a8aa4fad0a2fd840958f1942a
 - package: golang.org/x/oauth2
   version: 3c3a985cb79f52a3190fbc056984415ca6763d01
+- package: github.com/parnurzeal/gorequest
+  version: v0.2.14

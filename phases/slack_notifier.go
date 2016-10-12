@@ -2,14 +2,14 @@ package phases
 
 import (
 	"github.com/Everlane/evan/common"
-
-	"github.com/nlopes/slack"
+	"github.com/Everlane/evan/slack"
 )
 
 type SlackNotifierPhase struct {
-	Client  *slack.Client
+	// URL for the Slack Incoming Webhook
+	Webhook string
 	Channel string
-	Format  func(common.Deployment) (*string, *slack.PostMessageParameters, error)
+	Format  func(common.Deployment) (*slack.Payload, error)
 }
 
 func (snp *SlackNotifierPhase) CanPreload() bool {
@@ -17,23 +17,18 @@ func (snp *SlackNotifierPhase) CanPreload() bool {
 }
 
 func (snp *SlackNotifierPhase) Execute(deployment common.Deployment, _ interface{}) error {
-	message, params, err := snp.Format(deployment)
+	payload, err := snp.Format(deployment)
 	if err != nil {
 		return err
 	}
 
 	// Don't send a message to Slack if the format function didn't return
 	// a message to send
-	if message == nil {
+	if payload == nil {
 		return nil
 	}
 
-	if params == nil {
-		defaultParams := slack.NewPostMessageParameters()
-		params = &defaultParams
-	}
-
-	_, _, err = snp.Client.PostMessage(snp.Channel, *message, *params)
+	err = slack.Send(snp.Webhook, "", *payload)
 	if err != nil {
 		return err
 	}
