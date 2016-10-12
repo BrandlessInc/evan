@@ -28,6 +28,10 @@ func (snp *SlackNotifierPhase) Execute(deployment common.Deployment, _ interface
 		return nil
 	}
 
+	if payload.Channel == "" {
+		payload.Channel = snp.Channel
+	}
+
 	err = slack.Send(snp.Webhook, "", *payload)
 	if err != nil {
 		return err
