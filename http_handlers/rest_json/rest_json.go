@@ -106,9 +106,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 func DeploymentAsJSON(deployment common.Deployment) map[string]interface{} {
 	return map[string]interface{}{
 		"uuid": deployment.UUID(),
-		"application": map[string]interface{}{
-			"name": deployment.Application().Name(),
-		},
+		"application": deployment.Application().Name(),
 		"environment": deployment.Environment(),
 		"ref": deployment.Ref(),
 		"sha1": deployment.SHA1(),
