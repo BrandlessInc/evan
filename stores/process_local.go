@@ -11,7 +11,7 @@ type ProcessLocalStore struct {
 	// Two-level map: first is application repository canonical name, second
 	// is environment.
 	applications map[string]map[string]common.Deployment
-	mutex sync.Mutex
+	mutex        sync.Mutex
 }
 
 func NewProcessLocalStore() *ProcessLocalStore {
