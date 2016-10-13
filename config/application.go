@@ -7,7 +7,7 @@ import (
 )
 
 type Applications struct {
-	List []*Application
+	List  []*Application
 	Store common.Store
 }
 

@@ -95,7 +95,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 	}()
 
 	body, err := json.Marshal(map[string]interface{}{
-		"message": fmt.Sprintf("Deploying %v", humanDescription),
+		"message":    fmt.Sprintf("Deploying %v", humanDescription),
 		"deployment": DeploymentAsJSON(deployment),
 	})
 	if err != nil {
@@ -121,12 +121,12 @@ func DeploymentStatusAsJSON(status common.DeploymentStatus) map[string]interface
 
 func DeploymentAsJSON(deployment common.Deployment) map[string]interface{} {
 	return map[string]interface{}{
-		"uuid": deployment.UUID(),
+		"uuid":        deployment.UUID(),
 		"application": deployment.Application().Name(),
 		"environment": deployment.Environment(),
-		"ref": deployment.Ref(),
-		"sha1": deployment.SHA1(),
-		"status": DeploymentStatusAsJSON(deployment.Status()),
+		"ref":         deployment.Ref(),
+		"sha1":        deployment.SHA1(),
+		"status":      DeploymentStatusAsJSON(deployment.Status()),
 	}
 }
 
@@ -135,7 +135,6 @@ func (handler *CreateDeploymentHandler) readRequestInto(req *http.Request, val i
 	if err != nil {
 		return err
 	}
-
 	return json.Unmarshal(body, val)
 }
 
@@ -170,6 +169,5 @@ func (handler *DeploymentsStatusHandler) ServeHTTP(res http.ResponseWriter, req 
 		respondWithError(res, err, http.StatusInternalServerError)
 		return
 	}
-
 	respondWith(res, body, http.StatusOK)
 }
