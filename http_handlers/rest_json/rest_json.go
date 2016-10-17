@@ -73,12 +73,6 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		}
 	}
 
-	err = deployment.CheckPreconditions()
-	if err != nil {
-		respondWithError(res, err, http.StatusPreconditionFailed)
-		return
-	}
-
 	humanDescription := fmt.Sprintf(
 		"%v to %v for %v",
 		deploymentRequest.Ref,
@@ -88,7 +82,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 
 	// Start the party!
 	go func() {
-		err := deployment.RunPhases()
+		err := deployment.Execute()
 		if err != nil {
 			fmt.Printf("Error deploying %v: %v\n", humanDescription, err)
 		}

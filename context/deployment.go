@@ -130,6 +130,26 @@ func (deployment *Deployment) Status() common.DeploymentStatus {
 	}
 }
 
+// Run the entire deployment: preconditions, phases, and callbacks.
+func (deployment *Deployment) Execute() error {
+	var err error
+
+	err = deployment.CheckPreconditions()
+	if err != nil {
+		goto handleError
+	}
+
+	err = deployment.RunPhases()
+	if err != nil {
+		goto handleError
+	}
+
+	return nil
+
+handleError:
+	return err
+}
+
 func (deployment *Deployment) CheckPreconditions() error {
 	deployment.setStateAndSave(common.RUNNING_PRECONDITIONS)
 
