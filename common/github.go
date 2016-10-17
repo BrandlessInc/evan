@@ -126,8 +126,8 @@ func (repo *GithubRepository) GetCommitSHA1(ref string) (string, error) {
 func (repo *GithubRepository) Merge(base, head, commitMessage string) (*github.RepositoryCommit, error) {
 	owner, name := repo.OwnerAndName()
 	request := &github.RepositoryMergeRequest{
-		Base: &base,
-		Head: &head,
+		Base:          &base,
+		Head:          &head,
 		CommitMessage: &commitMessage,
 	}
 	commit, _, err := repo.GithubClient.Repositories.Merge(owner, name, request)

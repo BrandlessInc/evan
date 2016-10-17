@@ -147,6 +147,7 @@ func (deployment *Deployment) Execute() error {
 	return nil
 
 handleError:
+	deployment.strategy.OnError(err)
 	return err
 }
 

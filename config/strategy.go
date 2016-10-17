@@ -7,6 +7,7 @@ import (
 type Strategy struct {
 	Preconditions []common.Precondition
 	Phases        []common.Phase
+	OnError       func(error)
 }
 
 type CommonStrategyWrapper struct {
@@ -19,4 +20,10 @@ func (wrapper *CommonStrategyWrapper) Preconditions() []common.Precondition {
 
 func (wrapper *CommonStrategyWrapper) Phases() []common.Phase {
 	return wrapper.strategy.Phases
+}
+
+func (wrapper *CommonStrategyWrapper) OnError(err error) {
+	if wrapper.strategy.OnError != nil {
+		wrapper.strategy.OnError(err)
+	}
 }
