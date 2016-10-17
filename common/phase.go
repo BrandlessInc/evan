@@ -1,13 +1,5 @@
 package common
 
-type ExecuteStatus int
-
-const (
-	PHASE_DONE ExecuteStatus = iota
-	PHASE_IN_PROGRESS
-	PHASE_ERROR
-)
-
 type Phase interface {
 	CanPreload() bool
 	// Second argument is the result from the preload, or `nil` if the phase
