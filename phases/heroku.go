@@ -11,6 +11,9 @@ import (
 
 const TOKEN_FLAG string = "heroku.token"
 
+// Creates a build via the Heroku API with the deployment's ref/SHA1. The
+// build will use a generated tarball of the repository from GitHub (see its
+// Preload method for details).
 type HerokuBuildPhase struct {
 	// Will use this client if no client is passed through build flags.
 	DefaultClient *heroku.Client
@@ -88,6 +91,7 @@ func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment, context *
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.StatusCode != http.StatusCreated {
 		fmt.Printf("Received error from Heroku when creating build: %v\n", resp)
 		return nil, fmt.Errorf("Non-creation status code (expected %v, got %v)", http.StatusCreated, resp.StatusCode)
