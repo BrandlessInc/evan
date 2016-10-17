@@ -18,7 +18,7 @@ type Deployment struct {
 	sha1        string
 	flags       map[string]interface{}
 
-	store        common.Store
+	store common.Store
 
 	// Internal state
 	currentState common.DeploymentState
@@ -187,7 +187,7 @@ func (deployment *Deployment) RunPhases() error {
 
 type preloadResult struct {
 	data interface{}
-	err error
+	err  error
 }
 
 type PreloadResults map[common.Phase]interface{}
