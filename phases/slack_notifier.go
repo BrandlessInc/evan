@@ -32,7 +32,7 @@ func (snp *SlackNotifierPhase) Execute(deployment common.Deployment, _ interface
 		payload.Channel = snp.Channel
 	}
 
-	err = slack.Send(snp.Webhook, "", *payload)
+	err = slack.Send(snp.Webhook, *payload)
 	if err != nil {
 		return err
 	}

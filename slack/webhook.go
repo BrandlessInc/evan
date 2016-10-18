@@ -37,7 +37,7 @@ func (err *WebhookError) Error() string {
 	return fmt.Sprintf("WebhookError(%d): %s", err.StatusCode, body)
 }
 
-func Send(webhookUrl string, proxy string, payload Payload) error {
+func Send(webhookUrl string, payload Payload) error {
 	payloadBody, err := json.Marshal(payload)
 	if err != nil {
 		return err
