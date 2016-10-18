@@ -1,5 +1,5 @@
-hash: ce9f0bb588e9dc8676fa8069ca30ec37348995be61cd48d52fabdfb3dad5b439
-updated: 2016-10-12T14:04:18.836975-07:00
+hash: d16308a7b5691ac70aac396db847d585842a29ee3ef82c83b721f9331fed3957
+updated: 2016-10-18T13:56:31.286016037-07:00
 imports:
 - name: github.com/golang/protobuf
   version: df1d3ca07d2d07bba352d5b73c4313b4e2a6203e
@@ -33,4 +33,17 @@ imports:
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
-testImports: []
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+  - require
