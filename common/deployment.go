@@ -41,6 +41,7 @@ type Deployment interface {
 	UUID() uuid.UUID
 	Application() Application
 	Environment() string
+	Strategy() Strategy
 	Ref() string
 	SHA1() string
 	SetSHA1(string)

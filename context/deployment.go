@@ -55,6 +55,10 @@ func (deployment *Deployment) Environment() string {
 	return deployment.environment
 }
 
+func (deployment *Deployment) Strategy() common.Strategy {
+	return deployment.strategy
+}
+
 func (deployment *Deployment) Ref() string {
 	return deployment.ref
 }
@@ -128,27 +132,6 @@ func (deployment *Deployment) Status() common.DeploymentStatus {
 		Phase: phase,
 		Error: nil,
 	}
-}
-
-// Run the entire deployment: preconditions, phases, and callbacks.
-func (deployment *Deployment) Execute() error {
-	var err error
-
-	err = deployment.CheckPreconditions()
-	if err != nil {
-		goto handleError
-	}
-
-	err = deployment.RunPhases()
-	if err != nil {
-		goto handleError
-	}
-
-	return nil
-
-handleError:
-	deployment.strategy.OnError(err)
-	return err
 }
 
 func (deployment *Deployment) CheckPreconditions() error {

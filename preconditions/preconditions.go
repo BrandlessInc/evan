@@ -9,6 +9,7 @@ import (
 func _verify() []common.Precondition {
 	preconditions := make([]common.Precondition, 0)
 	preconditions = append(preconditions, &GithubCombinedStatusPrecondition{})
+	preconditions = append(preconditions, &GithubFetchCommitSHA1Precondition{})
 	preconditions = append(preconditions, &GithubRequireAheadPrecondition{})
 	return preconditions
 }
