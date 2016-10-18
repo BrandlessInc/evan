@@ -62,9 +62,9 @@ type Deployment interface {
 
 func HumanDescriptionOfDeployment(deployment Deployment) string {
 	return fmt.Sprintf(
-		"%v to %v for %v",
+		"%s to %s for %s",
 		deployment.Ref(),
 		deployment.Environment(),
-		deployment.Application(),
+		deployment.Application().Name(),
 	)
 }
