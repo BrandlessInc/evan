@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+
 	"github.com/satori/go.uuid"
 )
 
@@ -56,8 +58,11 @@ type Deployment interface {
 	Status() DeploymentStatus
 }
 
-type Strategy interface {
-	Preconditions() []Precondition
-	Phases() []Phase
-	OnError(Deployment, error)
+func HumanDescriptionOfDeployment(deployment Deployment) string {
+	return fmt.Sprintf(
+		"%v to %v for %v",
+		deployment.Ref(),
+		deployment.Environment(),
+		deployment.Application(),
+	)
 }

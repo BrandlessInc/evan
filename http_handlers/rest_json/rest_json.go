@@ -79,12 +79,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
-	humanDescription := fmt.Sprintf(
-		"%v to %v for %v",
-		deploymentRequest.Ref,
-		deploymentRequest.Environment,
-		deploymentRequest.Application,
-	)
+	humanDescription := common.HumanDescriptionOfDeployment(deployment)
 
 	// Start the party!
 	go func() {
