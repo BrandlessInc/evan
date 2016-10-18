@@ -91,7 +91,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		err := deployment.RunPhases()
 		if err != nil {
 			fmt.Printf("Error deploying %v: %v\n", humanDescription, err)
-			deployment.Strategy().OnError(err)
+			deployment.Strategy().OnError(deployment, err)
 		}
 	}()
 

@@ -7,7 +7,7 @@ import (
 type Strategy struct {
 	Preconditions []common.Precondition
 	Phases        []common.Phase
-	OnError       func(error)
+	OnError       func(common.Deployment, error)
 }
 
 type CommonStrategyWrapper struct {
@@ -22,8 +22,8 @@ func (wrapper *CommonStrategyWrapper) Phases() []common.Phase {
 	return wrapper.strategy.Phases
 }
 
-func (wrapper *CommonStrategyWrapper) OnError(err error) {
+func (wrapper *CommonStrategyWrapper) OnError(deployment common.Deployment, err error) {
 	if wrapper.strategy.OnError != nil {
-		wrapper.strategy.OnError(err)
+		wrapper.strategy.OnError(deployment, err)
 	}
 }

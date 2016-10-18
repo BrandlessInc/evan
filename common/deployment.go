@@ -59,5 +59,5 @@ type Deployment interface {
 type Strategy interface {
 	Preconditions() []Precondition
 	Phases() []Phase
-	OnError(error)
+	OnError(Deployment, error)
 }
