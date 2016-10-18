@@ -14,8 +14,8 @@ import (
 )
 
 type Attachment struct {
-	Color *string `json:"color"`
-	Text  *string `json:"text"`
+	Color string `json:"color,omitempty"`
+	Text  string `json:"text,omitempty"`
 }
 
 type Payload struct {
