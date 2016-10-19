@@ -21,8 +21,8 @@ type PendingDeployment struct {
 func NewPendingDeployment(deployment *Deployment, pending []common.Precondition) *PendingDeployment {
 	return &PendingDeployment{
 		deployment: deployment,
-		pending: pending,
-		passed: []common.Precondition{},
-		failed: []common.Precondition{},
+		pending:    pending,
+		passed:     []common.Precondition{},
+		failed:     []common.Precondition{},
 	}
 }
