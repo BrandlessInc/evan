@@ -9,10 +9,18 @@ import (
 type DeploymentState int
 
 const (
+	// Fresh deployment that has not begun execution.
 	DEPLOYMENT_PENDING DeploymentState = iota
+	// In the process of executing preconditions.
 	RUNNING_PRECONDITIONS
+	// Some preconditions reported pending state and it's waiting for those
+	// preconditions to no longer be pending.
+	PENDING_PRECONDITIONS
+	// Executing its phases.
 	RUNNING_PHASE
+	// All phases completely successfully.
 	DEPLOYMENT_DONE
+	// A phase encountered an error.
 	DEPLOYMENT_ERROR
 )
 
@@ -22,6 +30,8 @@ func (state DeploymentState) String() string {
 		return "DEPLOYMENT_PENDING"
 	case RUNNING_PRECONDITIONS:
 		return "RUNNING_PRECONDITIONS"
+	case PENDING_PRECONDITIONS:
+		return "PENDING_PRECONDITIONS"
 	case RUNNING_PHASE:
 		return "RUNNING_PHASE"
 	case DEPLOYMENT_DONE:
