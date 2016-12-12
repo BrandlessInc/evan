@@ -1,0 +1,15 @@
+sudo: false
+language: go
+go:
+  - '1.7'
+
+before_install:
+  # Setup Glide
+  - go get github.com/Masterminds/glide
+
+install:
+  - glide install
+  - go build
+
+script:
+  - go test $(glide novendor)

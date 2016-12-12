@@ -26,7 +26,7 @@ func (gh *GithubCombinedStatusPhase) Execute(deployment common.Deployment, data 
 	repo := deployment.Application().Repository()
 	ref := deployment.MostPreciseRef()
 
-	client, err := common.GithubClient(deployment)
+	client, err := deployment.GithubClient()
 	if err != nil {
 		return err
 	}

@@ -6,15 +6,21 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/Everlane/evan/common"
 	"github.com/Everlane/evan/config"
 	"github.com/Everlane/evan/context"
 
 	"github.com/google/go-github/github"
 )
 
-func createDeployment(app *config.Application, environment string, ref string) (*context.Deployment, error) {
+func createDeployment(app common.Application, environment string, ref string) (*context.Deployment, error) {
+	strategy := app.StrategyForEnvironment(environment)
+	if strategy == nil {
+		return nil, fmt.Errorf("Deployment strategy not found for environment: '%v'", environment)
+	}
+
 	flags := make(map[string]interface{})
-	return context.NewDeployment(app.Wrapper(), environment, ref, flags)
+	return context.NewDeployment(app, environment, strategy, ref, flags), nil
 }
 
 type GithubEventHandler struct {
@@ -34,7 +40,7 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body
 	environment := *deploymentEvent.Deployment.Environment
 	ref := *deploymentEvent.Deployment.Ref
 
-	deployment, err := createDeployment(app, environment, ref)
+	deployment, err := createDeployment(app.Wrapper(), environment, ref)
 	if err != nil {
 		return err
 	}
@@ -60,7 +66,7 @@ func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request
 	environment := *deploymentStatusEvent.Deployment.Environment
 	ref := *deploymentStatusEvent.Deployment.Ref
 
-	deployment, err := createDeployment(app, environment, ref)
+	deployment, err := createDeployment(app.Wrapper(), environment, ref)
 	if err != nil {
 		return err
 	}

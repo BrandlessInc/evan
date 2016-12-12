@@ -36,7 +36,7 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment)
 	repo := deployment.Application().Repository()
 	ref := deployment.MostPreciseRef()
 
-	client, err := common.GithubClient(deployment)
+	client, err := deployment.GithubClient()
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (gh *GithubRequireAheadPrecondition) Merge(deployment common.Deployment, ct
 }
 
 func (gh *GithubRequireAheadPrecondition) Status(deployment common.Deployment) error {
-	githubClient, err := common.GithubClient(deployment)
+	githubClient, err := deployment.GithubClient()
 	if err != nil {
 		return err
 	}

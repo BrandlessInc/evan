@@ -1,8 +1,6 @@
 package context
 
 import (
-	"fmt"
-
 	"github.com/Everlane/evan/common"
 
 	"github.com/satori/go.uuid"
@@ -26,12 +24,8 @@ type Deployment struct {
 	lastError    error
 }
 
-func NewDeployment(app common.Application, environment string, ref string, flags map[string]interface{}) (*Deployment, error) {
-	strategy := app.StrategyForEnvironment(environment)
-	if strategy == nil {
-		return nil, fmt.Errorf("Deployment strategy not found for environment: '%v'", environment)
-	}
-
+// Create a deployment for the given application to an environment.
+func NewDeployment(app common.Application, environment string, strategy common.Strategy, ref string, flags map[string]interface{}) *Deployment {
 	return &Deployment{
 		uuid:         uuid.NewV1(),
 		application:  app,
@@ -40,7 +34,13 @@ func NewDeployment(app common.Application, environment string, ref string, flags
 		ref:          ref,
 		flags:        flags,
 		currentState: common.DEPLOYMENT_PENDING,
-	}, nil
+	}
+}
+
+func NewBareDeployment() *Deployment {
+	return &Deployment{
+		flags: make(map[string]interface{}),
+	}
 }
 
 func (deployment *Deployment) UUID() uuid.UUID {

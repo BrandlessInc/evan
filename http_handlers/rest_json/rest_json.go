@@ -19,8 +19,13 @@ type CreateDeploymentRequest struct {
 	Flags       map[string]interface{} `json:"flags"`
 }
 
-func (cdr *CreateDeploymentRequest) newDeployment(app *config.Application) (*context.Deployment, error) {
-	return context.NewDeployment(app.Wrapper(), cdr.Environment, cdr.Ref, cdr.Flags)
+func (cdr *CreateDeploymentRequest) newDeployment(app common.Application) (*context.Deployment, error) {
+	strategy := app.StrategyForEnvironment(cdr.Environment)
+	if strategy == nil {
+		return nil, fmt.Errorf("Deployment strategy not found for environment: '%v'", cdr.Environment)
+	}
+
+	return context.NewDeployment(app, cdr.Environment, strategy, cdr.Ref, cdr.Flags), nil
 }
 
 type CreateDeploymentHandler struct {
@@ -53,7 +58,7 @@ func (handler *CreateDeploymentHandler) ServeHTTP(res http.ResponseWriter, req *
 		return
 	}
 
-	deployment, err := deploymentRequest.newDeployment(app)
+	deployment, err := deploymentRequest.newDeployment(app.Wrapper())
 	if err != nil {
 		respondWithError(res, err, http.StatusNotFound)
 		return
