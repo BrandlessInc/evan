@@ -4,25 +4,57 @@ import (
 	"fmt"
 
 	"github.com/Everlane/evan/common"
+
+	"github.com/google/go-github/github"
 )
 
-type GithubCombinedStatusPrecondition struct{}
+// Fetches the SHA1 for the commit from GitHub.
+type GithubFetchCommitSHA1Precondition struct{}
 
-func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
+func (gh *GithubFetchCommitSHA1Precondition) Status(deployment common.Deployment) error {
+	githubRepo, err := common.NewGithubRepositoryFromDeployment(deployment)
+	if err != nil {
+		return err
+	}
+
+	sha1, err := githubRepo.GetCommitSHA1(deployment.Ref())
+	if err != nil {
+		return err
+	}
+	deployment.SetSHA1(sha1)
+
+	return nil
+}
+
+type GithubCombinedStatusPrecondition struct {
+	// If true then it will ignore the reported status if GitHub reports that
+	// there are no status checks.
+	AllowEmpty bool
+}
+
+func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment) error {
 	repo := deployment.Application().Repository()
-	ref := deployment.Ref()
-	client := deployment.GithubClient()
+	ref := deployment.MostPreciseRef()
+
+	client, err := common.GithubClient(deployment)
+	if err != nil {
+		return err
+	}
 
 	status, _, err := client.Repositories.GetCombinedStatus(repo.Owner(), repo.Name(), ref, nil)
 	if err != nil {
-		return createResult(gh, err)
+		return err
 	}
 
-	var result error = nil
-	if *status.State != "success" {
-		result = fmt.Errorf("Non-success status for ref: %v", *status.State)
+	// Skip if there are no status checks and that's allowed
+	if *status.TotalCount == 0 && gh.AllowEmpty {
+		return nil
 	}
-	return createResult(gh, result)
+
+	if *status.State != "success" {
+		return fmt.Errorf("Non-success status for ref: %v", *status.State)
+	}
+	return nil
 }
 
 // Require that the branch for deployment not be behind the default branch
@@ -32,29 +64,23 @@ type GithubRequireAheadPrecondition struct {
 	AutoMerge bool
 }
 
+type GithubRequireAheadContext struct {
+	RepoClient  *common.GithubRepository
+	RepoDetails *github.Repository
+}
+
 // Compares the ref being deployed against the default branch on GitHub to
 // determine whether or not a merge needs to happen. Returns `false` if it's
 // a force deployment.
-func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment common.Deployment) (bool, error) {
+func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment common.Deployment, ctx *GithubRequireAheadContext) (bool, error) {
 	if deployment.IsForce() {
 		return false, nil
 	}
 
-	repo := deployment.Application().Repository()
-	githubRepo := &common.GithubRepository{
-		Repository:   repo,
-		GithubClient: deployment.GithubClient(),
-	}
-
-	repoDetails, err := githubRepo.Get()
-	if err != nil {
-		return false, err
-	}
-
-	base := *repoDetails.DefaultBranch
+	base := *ctx.RepoDetails.DefaultBranch
 	head := deployment.Ref()
 
-	comparison, err := githubRepo.CompareCommits(base, head)
+	comparison, err := ctx.RepoClient.CompareCommits(base, head)
 	if err != nil {
 		return false, err
 	}
@@ -62,6 +88,60 @@ func (gh *GithubRequireAheadPrecondition) NeedsMerge(deployment common.Deploymen
 	return (*comparison.BehindBy > 0), nil
 }
 
-func (gh *GithubRequireAheadPrecondition) Status(deployment common.Deployment) common.PreconditionResult {
-	return createResult(gh, nil)
+// Creates merge commit to get the target branch (deployment's ref) up-to-date
+// with the default branch of the repository.
+func (gh *GithubRequireAheadPrecondition) Merge(deployment common.Deployment, ctx *GithubRequireAheadContext) (string, error) {
+	base := deployment.Ref()
+	head := *ctx.RepoDetails.DefaultBranch
+	commitMessage := fmt.Sprintf("Merge '%v' into '%v'", head, base)
+	commit, err := ctx.RepoClient.Merge(base, head, commitMessage)
+	if err != nil {
+		return "", err
+	} else {
+		return *commit.SHA, nil
+	}
+}
+
+func (gh *GithubRequireAheadPrecondition) Status(deployment common.Deployment) error {
+	githubClient, err := common.GithubClient(deployment)
+	if err != nil {
+		return err
+	}
+
+	repoClient := &common.GithubRepository{
+		Repository:   deployment.Application().Repository(),
+		GithubClient: githubClient,
+	}
+	repoDetails, err := repoClient.Get()
+	if err != nil {
+		return err
+	}
+
+	ctx := &GithubRequireAheadContext{
+		RepoClient:  repoClient,
+		RepoDetails: repoDetails,
+	}
+
+	needsMerge, err := gh.NeedsMerge(deployment, ctx)
+	if err != nil {
+		return err
+	}
+
+	// Halt if we don't need to merge!
+	if !needsMerge {
+		return nil
+	}
+
+	if !gh.AutoMerge {
+		return fmt.Errorf("Merge needed for ref '%v'", deployment.Ref())
+	}
+
+	sha1, err := gh.Merge(deployment, ctx)
+	if err != nil {
+		return err
+	}
+	// Update the SHA1 to point to the new merge commit
+	deployment.SetSHA1(sha1)
+
+	return nil
 }

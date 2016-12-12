@@ -16,14 +16,17 @@ func bodyWithMessage(message string) []byte {
 }
 
 func respondWithError(res http.ResponseWriter, err error, code int) {
-	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(code)
 	body := bodyWithMessage(err.Error())
-	res.Write(body)
+	respondWith(res, body, code)
 }
 
 func respondWithOk(res http.ResponseWriter, message string) {
+	body := bodyWithMessage(message)
+	respondWith(res, body, http.StatusOK)
+}
+
+func respondWith(res http.ResponseWriter, body []byte, code int) {
 	res.Header().Set("Content-Type", "application/json")
-	res.WriteHeader(200)
-	res.Write(bodyWithMessage(message))
+	res.WriteHeader(code)
+	res.Write(body)
 }

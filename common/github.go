@@ -5,7 +5,42 @@ import (
 	"net/url"
 
 	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
+
+const ACCESS_TOKEN_FLAG string = "github.access_token"
+
+var DefaultGithubClient *github.Client = nil
+
+// Memoized map of GitHub clients by their access token
+var githubClients map[string]*github.Client
+
+func GithubClient(deployment Deployment) (*github.Client, error) {
+	if deployment.HasFlag(ACCESS_TOKEN_FLAG) {
+		accessToken := deployment.Flag(ACCESS_TOKEN_FLAG).(string)
+		if githubClients == nil {
+			githubClients = make(map[string]*github.Client)
+		}
+		if githubClients[accessToken] == nil {
+			githubClient := NewGithubClientWithAccessToken(accessToken)
+			githubClients[accessToken] = githubClient
+		}
+		return githubClients[accessToken], nil
+	}
+
+	if DefaultGithubClient != nil {
+		return DefaultGithubClient, nil
+	}
+
+	return nil, fmt.Errorf("No GitHub client configured nor was an access token found in '%v' flag", ACCESS_TOKEN_FLAG)
+}
+
+func NewGithubClientWithAccessToken(accessToken string) *github.Client {
+	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
+	tokenClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
+
+	return github.NewClient(tokenClient)
+}
 
 type GithubRepository struct {
 	Repository   Repository
@@ -19,11 +54,14 @@ func NewGithubRepository(repository Repository, githubClient *github.Client) *Gi
 	}
 }
 
-func NewGithubRepositoryFromDeployment(deployment Deployment) *GithubRepository {
+func NewGithubRepositoryFromDeployment(deployment Deployment) (*GithubRepository, error) {
 	repository := deployment.Application().Repository()
-	githubClient := deployment.GithubClient()
-
-	return NewGithubRepository(repository, githubClient)
+	githubClient, err := GithubClient(deployment)
+	if err != nil {
+		return nil, err
+	} else {
+		return NewGithubRepository(repository, githubClient), nil
+	}
 }
 
 func (repo *GithubRepository) OwnerAndName() (string, string) {
@@ -52,18 +90,22 @@ const (
 )
 
 // `format` should be one of "tarball" or "zipball".
-func (repo *GithubRepository) GetArchiveLink(format ArchiveFormat) (string, error) {
+func (repo *GithubRepository) GetArchiveLink(format ArchiveFormat, ref string) (string, error) {
 	owner, name := repo.OwnerAndName()
 
 	var url *url.URL
 	var err error
 
+	options := &github.RepositoryContentGetOptions{
+		Ref: ref,
+	}
+
 	// Work-around for `go-github` not exporting their `archiveFormat` type.
 	switch format {
 	case Tarball:
-		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Tarball, nil)
+		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Tarball, options)
 	case Zipball:
-		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Zipball, nil)
+		url, _, err = repo.GithubClient.Repositories.GetArchiveLink(owner, name, github.Zipball, options)
 	default:
 		return "", fmt.Errorf("Unknown archive format: '%v'", format)
 	}
@@ -73,4 +115,21 @@ func (repo *GithubRepository) GetArchiveLink(format ArchiveFormat) (string, erro
 	} else {
 		return url.String(), nil
 	}
+}
+
+func (repo *GithubRepository) GetCommitSHA1(ref string) (string, error) {
+	owner, name := repo.OwnerAndName()
+	sha1, _, err := repo.GithubClient.Repositories.GetCommitSHA1(owner, name, ref, "")
+	return sha1, err
+}
+
+func (repo *GithubRepository) Merge(base, head, commitMessage string) (*github.RepositoryCommit, error) {
+	owner, name := repo.OwnerAndName()
+	request := &github.RepositoryMergeRequest{
+		Base:          &base,
+		Head:          &head,
+		CommitMessage: &commitMessage,
+	}
+	commit, _, err := repo.GithubClient.Repositories.Merge(owner, name, request)
+	return commit, err
 }

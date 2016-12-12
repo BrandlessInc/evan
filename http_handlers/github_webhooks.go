@@ -13,7 +13,8 @@ import (
 )
 
 func createDeployment(app *config.Application, environment string, ref string) (*context.Deployment, error) {
-	return context.NewDeployment(app.Wrapper(), environment, ref)
+	flags := make(map[string]interface{})
+	return context.NewDeployment(app.Wrapper(), environment, ref, flags)
 }
 
 type GithubEventHandler struct {

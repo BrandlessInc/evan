@@ -5,19 +5,20 @@ import (
 
 	"github.com/Everlane/evan/common"
 
-	"github.com/google/go-github/github"
+	"github.com/satori/go.uuid"
 )
 
 // Stores state relating to a deployment.
 type Deployment struct {
+	uuid        uuid.UUID
 	application common.Application
 	environment string
 	strategy    common.Strategy
 	ref         string
+	sha1        string
 	flags       map[string]interface{}
 
-	githubClient *github.Client
-	store        common.Store
+	store common.Store
 
 	// Internal state
 	currentState common.DeploymentState
@@ -25,19 +26,25 @@ type Deployment struct {
 	lastError    error
 }
 
-func NewDeployment(app common.Application, environment string, ref string) (*Deployment, error) {
+func NewDeployment(app common.Application, environment string, ref string, flags map[string]interface{}) (*Deployment, error) {
 	strategy := app.StrategyForEnvironment(environment)
 	if strategy == nil {
 		return nil, fmt.Errorf("Deployment strategy not found for environment: '%v'", environment)
 	}
 
 	return &Deployment{
+		uuid:         uuid.NewV1(),
 		application:  app,
 		environment:  environment,
 		strategy:     strategy,
 		ref:          ref,
+		flags:        flags,
 		currentState: common.DEPLOYMENT_PENDING,
 	}, nil
+}
+
+func (deployment *Deployment) UUID() uuid.UUID {
+	return deployment.uuid
 }
 
 func (deployment *Deployment) Application() common.Application {
@@ -48,16 +55,28 @@ func (deployment *Deployment) Environment() string {
 	return deployment.environment
 }
 
+func (deployment *Deployment) Strategy() common.Strategy {
+	return deployment.strategy
+}
+
 func (deployment *Deployment) Ref() string {
 	return deployment.ref
 }
 
-func (deployment *Deployment) GithubClient() *github.Client {
-	return deployment.githubClient
+func (deployment *Deployment) SHA1() string {
+	return deployment.sha1
 }
 
-func (deployment *Deployment) SetGithubClient(githubClient *github.Client) {
-	deployment.githubClient = githubClient
+func (deployment *Deployment) SetSHA1(sha1 string) {
+	deployment.sha1 = sha1
+}
+
+func (deployment *Deployment) MostPreciseRef() string {
+	if deployment.sha1 != "" {
+		return deployment.sha1
+	} else {
+		return deployment.ref
+	}
 }
 
 func (deployment *Deployment) SetStoreAndSave(store common.Store) error {
@@ -80,18 +99,25 @@ func (deployment *Deployment) Flags() map[string]interface{} {
 	return deployment.flags
 }
 
+func (deployment *Deployment) HasFlag(key string) bool {
+	_, present := deployment.flags[key]
+	return present
+}
+
+func (deployment *Deployment) Flag(key string) interface{} {
+	return deployment.flags[key]
+}
+
+func (deployment *Deployment) SetFlag(key string, value interface{}) {
+	deployment.flags[key] = value
+}
+
 // Looks for the "force" boolean in the `flags`.
 func (deployment *Deployment) IsForce() bool {
-	forceUntyped, present := deployment.flags["force"]
-	if !present {
-		return false
-	}
-
-	force, ok := forceUntyped.(bool)
-	if !ok || !force {
-		return false
+	if force, ok := deployment.Flag("force").(bool); ok {
+		return force
 	} else {
-		return true
+		return false
 	}
 }
 
@@ -112,18 +138,10 @@ func (deployment *Deployment) CheckPreconditions() error {
 	deployment.setStateAndSave(common.RUNNING_PRECONDITIONS)
 
 	preconditions := deployment.strategy.Preconditions()
-
-	resultChan := make(chan common.PreconditionResult)
 	for _, precondition := range preconditions {
-		go func() {
-			resultChan <- precondition.Status(deployment)
-		}()
-	}
-
-	for _ = range preconditions {
-		result := <-resultChan
-		if result.Error != nil {
-			return result.Error
+		err := precondition.Status(deployment)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -153,6 +171,8 @@ func (deployment *Deployment) runPhases(preloadResults PreloadResults) error {
 func (deployment *Deployment) RunPhases() error {
 	results, err := deployment.RunPhasePreloads()
 	if err != nil {
+		deployment.lastError = err
+		deployment.setStateAndSave(common.DEPLOYMENT_ERROR)
 		return err
 	}
 
@@ -171,7 +191,7 @@ func (deployment *Deployment) RunPhases() error {
 
 type preloadResult struct {
 	data interface{}
-	err error
+	err  error
 }
 
 type PreloadResults map[common.Phase]interface{}
