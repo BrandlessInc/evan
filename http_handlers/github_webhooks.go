@@ -6,21 +6,26 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/Everlane/evan/common"
 	"github.com/Everlane/evan/config"
 	"github.com/Everlane/evan/context"
 
 	"github.com/google/go-github/github"
 )
 
-func createDeployment(app *config.Application, environment string, ref string) *context.Deployment {
-	strategy := app.DeployEnvironment(environment)
+func createDeployment(app common.Application, environment string, ref string) (*context.Deployment, error) {
+	strategy := app.StrategyForEnvironment(environment)
+	if strategy == nil {
+		return nil, fmt.Errorf("Deployment strategy not found for environment: '%v'", environment)
+	}
 
-	return context.NewDeployment(app, environment, strategy, ref)
+	flags := make(map[string]interface{})
+	return context.NewDeployment(app, environment, strategy, ref, flags), nil
 }
 
 type GithubEventHandler struct {
-	Applications  *config.Applications
-	PreDeployment func(*http.Request, *context.Deployment) error
+	Applications        *config.Applications
+	PreDeployment       func(*http.Request, *context.Deployment) error
 	PreDeploymentStatus func(*http.Request, *context.Deployment) error
 }
 
@@ -35,8 +40,10 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body
 	environment := *deploymentEvent.Deployment.Environment
 	ref := *deploymentEvent.Deployment.Ref
 
-	deployment := createDeployment(app, environment, ref)
-	deployment.SetInitiator(deploymentEvent)
+	deployment, err := createDeployment(app.Wrapper(), environment, ref)
+	if err != nil {
+		return err
+	}
 
 	if handler.PreDeployment != nil {
 		err := handler.PreDeployment(req, deployment)
@@ -45,7 +52,7 @@ func (handler *GithubEventHandler) HandleDeploymentEvent(req *http.Request, body
 		}
 	}
 
-	return deployment.Run()
+	return nil // deployment.Run()
 }
 
 func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request, body []byte) error {
@@ -59,8 +66,10 @@ func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request
 	environment := *deploymentStatusEvent.Deployment.Environment
 	ref := *deploymentStatusEvent.Deployment.Ref
 
-	deployment := createDeployment(app, environment, ref)
-	deployment.SetInitiator(deploymentStatusEvent)
+	deployment, err := createDeployment(app.Wrapper(), environment, ref)
+	if err != nil {
+		return err
+	}
 
 	if handler.PreDeploymentStatus != nil {
 		err := handler.PreDeploymentStatus(req, deployment)
@@ -69,7 +78,7 @@ func (handler *GithubEventHandler) HandleDeploymentStatusEvent(req *http.Request
 		}
 	}
 
-	return deployment.Run()
+	return nil // deployment.Run()
 }
 
 func (handler *GithubEventHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {

@@ -1,6 +1,10 @@
-hash: c0ceadec260b5db6bf22ff408aae6d82de56fd75c49d579d80306b6fdad9614c
-updated: 2016-10-05T16:38:51.082962057-07:00
+hash: d16308a7b5691ac70aac396db847d585842a29ee3ef82c83b721f9331fed3957
+updated: 2016-10-18T13:56:31.286016037-07:00
 imports:
+- name: github.com/golang/protobuf
+  version: df1d3ca07d2d07bba352d5b73c4313b4e2a6203e
+  subpackages:
+  - proto
 - name: github.com/google/go-github
   version: 3e246d29992beb5a5d2fc253adebea86997c45b0
   subpackages:
@@ -9,10 +13,37 @@ imports:
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
   subpackages:
   - query
-- name: github.com/nlopes/slack
-  version: a1a63712460a18dbe828ae915f954a0f214f3d8e
+- name: github.com/satori/go.uuid
+  version: b061729afc07e77a8aa4fad0a2fd840958f1942a
 - name: golang.org/x/net
   version: ffe101cce3477a6c6d8f0754d103bb0a84ec1266
   subpackages:
-  - websocket
-testImports: []
+  - context
+- name: golang.org/x/oauth2
+  version: 3c3a985cb79f52a3190fbc056984415ca6763d01
+  subpackages:
+  - internal
+- name: google.golang.org/appengine
+  version: 596d349602aa23355ff46ade49ebfeb99c0fc550
+  subpackages:
+  - internal
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+  - require
