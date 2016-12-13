@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 
+	"github.com/google/go-github/github"
 	"github.com/satori/go.uuid"
 )
 
@@ -54,6 +55,7 @@ type Deployment interface {
 	Application() Application
 	Environment() string
 	Strategy() Strategy
+	GithubClient() (*github.Client, error)
 	Ref() string
 	SHA1() string
 	SetSHA1(string)
