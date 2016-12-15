@@ -18,6 +18,7 @@ Evan is like [heaven][] for your deployment automation.
 - **http_handlers**: Provides common handlers conforming to the Go `net/http.Handler` interface for receiving various events and commands.
   - **rest_json**: These handlers make it easy to build a REST'ish JSON API for creating, managing, and querying deployments.
 - **common**: Shared protocols for communicating information and functionality between the subsystems that make up Evan.
+- **slack**: Utility for sending messages via Slack webhooks.
 
 ## License
 
