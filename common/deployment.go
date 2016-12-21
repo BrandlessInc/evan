@@ -60,6 +60,12 @@ type Deployment interface {
 	IsForce() bool
 
 	Status() DeploymentStatus
+	// Deploys can result in products, eg. the URL to the build log. Phases
+	// store their products here for use by other phases/the end user.
+	Products() map[string]interface{}
+	HasProduct(string) bool
+	Product(string) interface{}
+	SetProduct(string, interface{})
 }
 
 func HumanDescriptionOfDeployment(deployment Deployment) string {
