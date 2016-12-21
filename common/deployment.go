@@ -51,6 +51,8 @@ type Deployment interface {
 	SetSHA1(string)
 	// Return the SHA1 if known, otherwise the ref
 	MostPreciseRef() string
+	// Users can tweak the operation of the deploy via flags, eg. a "force"
+	// flag to skip some checks.
 	Flags() map[string]interface{}
 	HasFlag(string) bool
 	Flag(string) interface{}
