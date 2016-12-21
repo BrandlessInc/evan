@@ -10,6 +10,7 @@ import (
 )
 
 const TOKEN_FLAG string = "heroku.token"
+const DASHBOARD_URL_PRODUCT string = "heroku.dashboard_url"
 
 // Creates a build via the Heroku API with the deployment's ref/SHA1. The
 // build will use a generated tarball of the repository from GitHub (see its
@@ -79,6 +80,8 @@ func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment, data interfac
 	if err != nil {
 		return err
 	}
+
+	deployment.SetProduct(DASHBOARD_URL_PRODUCT, build.DashboardUrl())
 
 	if build.Status == "failed" {
 		if hbp.OnFailed != nil {
