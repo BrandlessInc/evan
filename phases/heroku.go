@@ -18,6 +18,11 @@ type HerokuBuildPhase struct {
 	// Will use this client if no client is passed through build flags.
 	DefaultClient *heroku.Client
 	AppId         string
+
+	// These are called when the build resolves to either "succeeded" or
+	// "failed" state (from "pending").
+	OnSucceeded func(*heroku.Build)
+	OnFailed    func(*heroku.Build)
 }
 
 type HerokuBuildPhaseContext struct {
@@ -74,13 +79,22 @@ func (hbp *HerokuBuildPhase) Execute(deployment common.Deployment, data interfac
 	if err != nil {
 		return err
 	}
-	if build.Status == "failed" {
-		return fmt.Errorf("Build %v failed", build.Id)
-	}
 
-	// Heroku will have automatically deployed that new build as a release, so
-	// we can consider this phase done.
-	return nil
+	if build.Status == "failed" {
+		if hbp.OnFailed != nil {
+			hbp.OnFailed(build)
+		}
+
+		return fmt.Errorf("Build %v failed", build.Id)
+	} else {
+		if hbp.OnSucceeded != nil {
+			hbp.OnSucceeded(build)
+		}
+
+		// Heroku will have automatically deployed that new build as a release, so
+		// we can consider this phase done.
+		return nil
+	}
 }
 
 func (hbp *HerokuBuildPhase) createBuild(deployment common.Deployment, context *HerokuBuildPhaseContext) (*heroku.Build, error) {
