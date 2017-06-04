@@ -1,8 +1,8 @@
 package phases
 
 import (
-	"github.com/Everlane/evan/common"
-	"github.com/Everlane/evan/slack"
+	"github.com/BrandlessInc/evan/common"
+	"github.com/BrandlessInc/evan/slack"
 )
 
 type SlackNotifierPhase struct {

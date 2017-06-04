@@ -3,8 +3,8 @@ package preconditions
 import (
 	"testing"
 
-	"github.com/Everlane/evan/common"
-	"github.com/Everlane/evan/context"
+	"github.com/BrandlessInc/evan/common"
+	"github.com/BrandlessInc/evan/context"
 
 	"github.com/stretchr/testify/require"
 )

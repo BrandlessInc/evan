@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/Everlane/evan/common"
+	"github.com/BrandlessInc/evan/common"
 )
 
 type Strategy struct {

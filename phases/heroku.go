@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Everlane/evan/common"
-	"github.com/Everlane/evan/heroku"
+	"github.com/BrandlessInc/evan/common"
+	"github.com/BrandlessInc/evan/heroku"
 )
 
 const TOKEN_FLAG string = "heroku.token"
