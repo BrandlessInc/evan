@@ -6,10 +6,19 @@ import (
 	"net/http"
 )
 
+type App struct {
+	Id string `json:"id"`
+}
+
 type Build struct {
 	Id         string      `json:"id"`
+	App        *App        `json:"app"`
 	SourceBlob *SourceBlob `json:"source_blob"`
 	Status     string      `json:"status"`
+}
+
+func (build *Build) DashboardUrl() string {
+	return fmt.Sprintf("https://dashboard.heroku.com/apps/%v/activity/builds/%v", build.App.Id, build.Id)
 }
 
 type SourceBlob struct {

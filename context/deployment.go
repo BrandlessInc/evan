@@ -15,6 +15,7 @@ type Deployment struct {
 	ref         string
 	sha1        string
 	flags       map[string]interface{}
+	products    map[string]interface{}
 
 	store common.Store
 
@@ -110,6 +111,23 @@ func (deployment *Deployment) Flag(key string) interface{} {
 
 func (deployment *Deployment) SetFlag(key string, value interface{}) {
 	deployment.flags[key] = value
+}
+
+func (deployment *Deployment) Products() map[string]interface{} {
+	return deployment.products
+}
+
+func (deployment *Deployment) HasProduct(key string) bool {
+	_, present := deployment.products[key]
+	return present
+}
+
+func (deployment *Deployment) Product(key string) interface{} {
+	return deployment.products[key]
+}
+
+func (deployment *Deployment) SetProduct(key string, value interface{}) {
+	deployment.products[key] = value
 }
 
 // Looks for the "force" boolean in the `flags`.
