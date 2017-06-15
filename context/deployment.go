@@ -34,13 +34,15 @@ func NewDeployment(app common.Application, environment string, strategy common.S
 		strategy:     strategy,
 		ref:          ref,
 		flags:        flags,
+		products:     make(map[string]interface{}),
 		currentState: common.DEPLOYMENT_PENDING,
 	}
 }
 
 func NewBareDeployment() *Deployment {
 	return &Deployment{
-		flags: make(map[string]interface{}),
+		flags:    make(map[string]interface{}),
+		products: make(map[string]interface{}),
 	}
 }
 
