@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/Everlane/evan/common"
+	"github.com/BrandlessInc/evan/common"
 
 	"github.com/satori/go.uuid"
 )

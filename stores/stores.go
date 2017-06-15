@@ -1,7 +1,7 @@
 package stores
 
 import (
-	"github.com/Everlane/evan/common"
+	"github.com/BrandlessInc/evan/common"
 )
 
 // Compiler verification that the implementations conform to the interface.

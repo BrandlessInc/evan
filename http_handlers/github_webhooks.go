@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/Everlane/evan/common"
-	"github.com/Everlane/evan/config"
-	"github.com/Everlane/evan/context"
+	"github.com/BrandlessInc/evan/common"
+	"github.com/BrandlessInc/evan/config"
+	"github.com/BrandlessInc/evan/context"
 
 	"github.com/google/go-github/github"
 )

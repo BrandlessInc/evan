@@ -3,7 +3,7 @@ package preconditions
 import (
 	"time"
 
-	"github.com/Everlane/evan/common"
+	"github.com/BrandlessInc/evan/common"
 )
 
 type SleepPrecondition struct {

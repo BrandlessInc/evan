@@ -3,7 +3,7 @@ package stores
 import (
 	"sync"
 
-	"github.com/Everlane/evan/common"
+	"github.com/BrandlessInc/evan/common"
 )
 
 // Stores deployments in the process's local memory.

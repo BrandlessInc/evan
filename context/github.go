@@ -3,7 +3,7 @@ package context
 import (
 	"fmt"
 
-	"github.com/Everlane/evan/config"
+	"github.com/BrandlessInc/evan/config"
 
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"

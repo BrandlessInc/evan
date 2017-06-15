@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/Everlane/evan/common"
+	"github.com/BrandlessInc/evan/common"
 
 	"github.com/google/go-github/github"
 )

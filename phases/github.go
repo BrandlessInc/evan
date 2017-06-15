@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Everlane/evan/common"
+	"github.com/BrandlessInc/evan/common"
 )
 
 // Poll the GitHub API to check the combined status for the deployment's

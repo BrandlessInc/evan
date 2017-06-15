@@ -22,4 +22,6 @@ Evan is like [heaven][] for your deployment automation.
 
 ## License
 
-Released under the MIT license, see [LICENSE](LICENSE) for details.
+Built by [Dirk Gadsden][] at Everlane and Brandless. Released under the MIT license, see [LICENSE](LICENSE) for details.
+
+[Dirk Gadsden]: https://dirk.to/
