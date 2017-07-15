@@ -51,10 +51,14 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment)
 		return nil
 	}
 
-	if *status.State != "success" {
+	switch *status.State {
+	case "success":
+		return nil
+	case "pending":
+		return common.NewPendingError(fmt.Errorf("Status pending"))
+	default:
 		return fmt.Errorf("Non-success status for ref: %v", *status.State)
 	}
-	return nil
 }
 
 // Require that the branch for deployment not be behind the default branch
