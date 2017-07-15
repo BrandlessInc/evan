@@ -7,6 +7,7 @@ import (
 type Strategy struct {
 	Preconditions []common.Precondition
 	Phases        []common.Phase
+	Notifiers     []common.Notifier
 	OnError       func(common.Deployment, error)
 }
 
@@ -20,6 +21,10 @@ func (wrapper *CommonStrategyWrapper) Preconditions() []common.Precondition {
 
 func (wrapper *CommonStrategyWrapper) Phases() []common.Phase {
 	return wrapper.strategy.Phases
+}
+
+func (wrapper *CommonStrategyWrapper) Notifiers() []common.Notifier {
+	return wrapper.strategy.Notifiers
 }
 
 func (wrapper *CommonStrategyWrapper) OnError(deployment common.Deployment, err error) {

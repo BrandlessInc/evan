@@ -1,6 +1,8 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/BrandlessInc/evan/common"
 
 	"github.com/satori/go.uuid"
@@ -155,6 +157,9 @@ func (deployment *Deployment) Status() common.DeploymentStatus {
 }
 
 func (deployment *Deployment) CheckPreconditions() error {
+	go deployment.notifyBeforePreconditions()
+	defer func() { go deployment.notifyAfterPreconditions() }()
+
 	deployment.setStateAndSave(common.RUNNING_PRECONDITIONS)
 
 	preconditions := deployment.strategy.Preconditions()
@@ -189,6 +194,9 @@ func (deployment *Deployment) runPhases(preloadResults PreloadResults) error {
 // `currentPhase` fields as appropriate. If an error occurs it will also set
 // the `lastError` field to that error.
 func (deployment *Deployment) RunPhases() error {
+	go deployment.notifyBeforePhases()
+	defer func() { go deployment.notifyAfterPhases() }()
+
 	results, err := deployment.RunPhasePreloads()
 	if err != nil {
 		deployment.lastError = err
@@ -207,6 +215,39 @@ func (deployment *Deployment) RunPhases() error {
 		deployment.setStateAndSave(common.DEPLOYMENT_DONE)
 		return nil
 	}
+}
+
+func (deployment *Deployment) callNotifiers(eachNotifier func(notifier common.Notifier, deployment *Deployment) error) {
+	for _, notifier := range deployment.Strategy().Notifiers() {
+		err := eachNotifier(notifier, deployment)
+		if err != nil {
+			fmt.Printf("Error notifying %v: %v\n", notifier, err)
+		}
+	}
+}
+
+func (deployment *Deployment) notifyBeforePreconditions() {
+	deployment.callNotifiers(func(notifier common.Notifier, deployment *Deployment) error {
+		return notifier.BeforePreconditions(deployment)
+	})
+}
+
+func (deployment *Deployment) notifyAfterPreconditions() {
+	deployment.callNotifiers(func(notifier common.Notifier, deployment *Deployment) error {
+		return notifier.AfterPreconditions(deployment)
+	})
+}
+
+func (deployment *Deployment) notifyBeforePhases() {
+	deployment.callNotifiers(func(notifier common.Notifier, deployment *Deployment) error {
+		return notifier.BeforePhases(deployment)
+	})
+}
+
+func (deployment *Deployment) notifyAfterPhases() {
+	deployment.callNotifiers(func(notifier common.Notifier, deployment *Deployment) error {
+		return notifier.AfterPhases(deployment)
+	})
 }
 
 type preloadResult struct {
