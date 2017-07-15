@@ -1,6 +1,8 @@
 package context
 
 import (
+	"fmt"
+
 	"github.com/BrandlessInc/evan/common"
 
 	"github.com/satori/go.uuid"
@@ -206,6 +208,17 @@ func (deployment *Deployment) RunPhases() error {
 	} else {
 		deployment.setStateAndSave(common.DEPLOYMENT_DONE)
 		return nil
+	}
+}
+
+type eachNotifier func(notifier common.Notifier, deployment *Deployment) error
+
+func (deployment *Deployment) callNotifiers(eachNotifier eachNotifier) {
+	for _, notifier := range deployment.Strategy().Notifiers() {
+		err := eachNotifier(notifier, deployment)
+		if err != nil {
+			fmt.Printf("Error notifying %v: %v\n", notifier, err)
+		}
 	}
 }
 
