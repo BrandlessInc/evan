@@ -236,10 +236,10 @@ func (deployment *Deployment) RunPhasePreloads() (PreloadResults, error) {
 
 	resultChan := make(chan preloadResult)
 	for _, phase := range preloadablePhases {
-		go func() {
-			data, err := phase.Preload(deployment)
+		go func(currentPhase common.PreloadablePhase) {
+			data, err := currentPhase.Preload(deployment)
 			resultChan <- preloadResult{data: data, err: err}
-		}()
+		}(phase)
 	}
 
 	results := make(PreloadResults)
