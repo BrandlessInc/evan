@@ -158,8 +158,6 @@ func (deployment *Deployment) Status() common.DeploymentStatus {
 
 func (deployment *Deployment) CheckPreconditions() error {
 	go deployment.notifyBeforePreconditions()
-	defer func() { go deployment.notifyAfterPreconditions() }()
-
 	deployment.setStateAndSave(common.RUNNING_PRECONDITIONS)
 
 	preconditions := deployment.strategy.Preconditions()
@@ -170,6 +168,7 @@ func (deployment *Deployment) CheckPreconditions() error {
 		}
 	}
 
+	go deployment.notifyAfterPreconditions()
 	return nil
 }
 
@@ -195,7 +194,6 @@ func (deployment *Deployment) runPhases(preloadResults PreloadResults) error {
 // the `lastError` field to that error.
 func (deployment *Deployment) RunPhases() error {
 	go deployment.notifyBeforePhases()
-	defer func() { go deployment.notifyAfterPhases() }()
 
 	results, err := deployment.RunPhasePreloads()
 	if err != nil {
@@ -211,10 +209,11 @@ func (deployment *Deployment) RunPhases() error {
 		deployment.lastError = err
 		deployment.setStateAndSave(common.DEPLOYMENT_ERROR)
 		return err
-	} else {
-		deployment.setStateAndSave(common.DEPLOYMENT_DONE)
-		return nil
 	}
+
+	go deployment.notifyAfterPhases()
+	deployment.setStateAndSave(common.DEPLOYMENT_DONE)
+	return nil
 }
 
 func (deployment *Deployment) callNotifiers(eachNotifier func(notifier common.Notifier, deployment *Deployment) error) {
