@@ -52,7 +52,7 @@ func (gh *GithubCombinedStatusPrecondition) Status(deployment common.Deployment)
 	}
 
 	if *status.State != "success" {
-		return fmt.Errorf("Non-success status for ref: %v", *status.State)
+		return fmt.Errorf("Non-success status: %v", *status.State)
 	}
 	return nil
 }
